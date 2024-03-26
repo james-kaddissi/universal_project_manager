@@ -1,5 +1,6 @@
 use clap::{Arg, Command as ClapCommand};
 use std::fs;
+use std::env;
 use std::io::Write;
 use std::path::Path;
 use std::process::Command;
@@ -19,7 +20,11 @@ fn main() {
         )
         .subcommand(
             ClapCommand::new("add")
-                .about("Adds a package to the project"),
+                .about("Adds a package to the project")
+                .arg(Arg::new("PACKAGE_NAME")
+                    .help("The name of the package to add")
+                    .required(true)
+                    .index(1)),
         )
         .get_matches();
 
@@ -28,8 +33,9 @@ fn main() {
             let project_name = new_matches.get_one::<String>("PROJECT_NAME").unwrap();
             create_project(project_name);
         },
-        Some(("add", _)) => {
-            add_package();
+        Some(("add", add_matches)) => {
+            let package_name = add_matches.get_one::<String>("PACKAGE_NAME").unwrap();
+            add_package(package_name);
         },
         _ => {}
     }
@@ -57,10 +63,39 @@ fn create_project(project_name: &str) {
     println!("Project {} created successfully.", project_name);
 }
 
-fn add_package() {
-    println!("Adding package");
-    // Implement package addition logic here
+fn add_package(package_name: &str) {
+    let current_dir = env::current_dir().expect("Failed to get current directory");
+    let requirements_path = current_dir.join("requirements.txt");
+
+    // Append the package name to requirements.txt
+    let mut file = fs::OpenOptions::new()
+        .write(true)
+        .append(true)
+        .open(&requirements_path)
+        .expect("Failed to open requirements.txt");
+    writeln!(file, "{}", package_name).expect("Failed to write to requirements.txt");
+
+    // Determine the correct path for pip based on the operating system
+    let pip_path = if cfg!(target_os = "windows") {
+        current_dir.join("venv").join("Scripts").join("pip.exe")
+    } else {
+        // For Unix-like systems
+        current_dir.join("venv").join("bin").join("pip")
+    };
+
+    // Install the package using pip from the venv
+    let status = Command::new(pip_path)
+        .args(&["install", package_name])
+        .status()
+        .expect("Failed to install package");
+
+    if status.success() {
+        println!("Package '{}' added successfully.", package_name);
+    } else {
+        eprintln!("Failed to add package '{}'.", package_name);
+    }
 }
+
 
 fn create_virtual_env(project_path: &str) {
     Command::new("python3")
