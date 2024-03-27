@@ -8,7 +8,7 @@ use std::process::Command;
 fn main() {
     let matches = ClapCommand::new("Ultimate Project Manager")
         .version("0.1.0")
-        .author("Your Name")
+        .author("James Kaddissi")
         .about("Manages Python projects")
         .subcommand(
             ClapCommand::new("new")
