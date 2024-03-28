@@ -1,0 +1,10 @@
+[DefaultFlags]
+"git" = false
+"ignore" = false 
+
+# GIT:
+# the git flag is used to initialize a project as a git repo
+
+# IGNORE:
+# the ignore flag has several template subcommands, by default if ignore is passed with no subcommand, 
+# a standard .gitignore for the desired language will be generated. If no desired language, a blank .gitignore is made.

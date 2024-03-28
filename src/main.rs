@@ -1,22 +1,44 @@
-use clap::{Arg, Command as ClapCommand};
+use clap::{Arg, Command as ClapCommand };
 use std::fs;
 use std::env;
 use std::io::Write;
 use std::path::Path;
 use std::process::Command;
+use serde::Deserialize;
+
+#[derive(Deserialize)]
+struct Config {
+    DefaultFlags: DefaultFlags,
+}
+
+#[derive(Deserialize)]
+struct DefaultFlags {
+    git: bool,
+    ignore: bool,
+}
+
+fn read_config() -> Config {
+    let config_str = fs::read_to_string("upmconfig.toml")
+        .expect("Failed to read upmconfig.toml");
+    toml::from_str(&config_str).expect("Failed to process upmconfig.toml")
+}
 
 fn main() {
-    let matches = ClapCommand::new("Ultimate Project Manager")
+    let matches = ClapCommand::new("upm")
         .version("0.1.0")
-        .author("Your Name")
-        .about("Manages Python projects")
+        .about("Manages programming projects")
         .subcommand(
             ClapCommand::new("new")
                 .about("Creates a new Python project")
-                .arg(Arg::new("PROJECT_NAME")
-                    .help("The name of the project")
-                    .required(true)
-                    .index(1)),
+                .arg(Arg::new("PROJECT_NAME").help("The name of the project").required(true).index(1))
+                .subcommand(
+                    ClapCommand::new("git")
+                        .about("Initializes the project with git")
+                        .subcommand(
+                            ClapCommand::new("ignore")
+                                .about("Initializes a .gitignore")
+                        )
+                )
         )
         .subcommand(
             ClapCommand::new("add")
@@ -29,18 +51,34 @@ fn main() {
         .get_matches();
 
     match matches.subcommand() {
-        Some(("new", new_matches)) => {
-            let project_name = new_matches.get_one::<String>("PROJECT_NAME").unwrap();
-            create_project(project_name);
+        Some(("new", sub_m)) => {
+            let project_name = sub_m.get_one::<String>("PROJECT_NAME").unwrap();
+            match sub_m.subcommand() {
+                Some(("git", _git_matches)) => {
+                    // Initialize project with git
+                    match _git_matches.subcommand() {
+                        Some(("ignore", _ignore_matches)) => {
+                            create_project(project_name, true, true);
+                        },
+                        _ => {
+                            create_project(project_name, true, false);
+                        },
+                    }                    
+                },
+                _ => {
+                    // Create project without git initialization
+                    create_project(project_name, false, false);
+                },
+            }
         },
-        Some(("add", add_matches)) => {
-            let package_name = add_matches.get_one::<String>("PACKAGE_NAME").unwrap();
+        Some(("add", sub_m)) => {
+            let package_name = sub_m.get_one::<String>("PACKAGE_NAME").unwrap();
             add_package(package_name);
         },
         _ => {}
     }
 }
-fn create_project(project_name: &str) {
+fn create_project(project_name: &str, git: bool, ignore: bool) {
     let root_path = Path::new(project_name);
     if root_path.exists() {
         println!("Project {} already exists.", project_name);
@@ -57,7 +95,23 @@ fn create_project(project_name: &str) {
     // Create requirements.txt
     let _ = fs::File::create(root_path.join("requirements.txt")).expect("Failed to create requirements.txt");
 
+    if git {
+        Command::new("git")
+            .args(&["init", project_name])
+            .status()
+            .expect("Failed to initialize git repository");
+        println!("Initialized empty Git repository in {}/.git/", project_name);
+    }
+
+    if ignore {
+        let gitignore_path = Path::new(project_name).join(".gitignore");
+        let gitignore_content = if ignore { "venv/\n__pycache__/\n*.pyc" } else { "" }; // Customize as needed
+        fs::write(gitignore_path, gitignore_content).expect("Failed to create .gitignore");
+        println!("Created .gitignore");
+    }
+
     // Create virtual environment
+    println!("CREATING PYTHON VENV");
     create_virtual_env(project_name);
 
     println!("Project {} created successfully.", project_name);
@@ -95,7 +149,6 @@ fn add_package(package_name: &str) {
         eprintln!("Failed to add package '{}'.", package_name);
     }
 }
-
 
 fn create_virtual_env(project_path: &str) {
     Command::new("python3")
