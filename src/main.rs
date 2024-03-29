@@ -48,6 +48,10 @@ fn main() {
                     .required(true)
                     .index(1)),
         )
+        .subcommand(
+            ClapCommand::new("run")
+                .about("Runs the file located at ./src/main.py")
+        )
         .get_matches();
 
     match matches.subcommand() {
@@ -75,9 +79,31 @@ fn main() {
             let package_name = sub_m.get_one::<String>("PACKAGE_NAME").unwrap();
             add_package(package_name);
         },
+        Some(("run", sub_m)) => {
+            run_project();
+        }
         _ => {}
     }
 }
+
+fn run_project() {
+    let script_path = "./src/main.py";
+
+    match Command::new("python")
+        .arg(script_path)
+        .status() {
+        Ok(status) if status.success() => {
+            println!("Project ran successfully.");
+        },
+        Ok(status) => {
+            eprintln!("Project execution failed with exit code: {}", status);
+        },
+        Err(e) => {
+            eprintln!("Failed to execute project: {}", e);
+        },
+    }
+}
+
 fn create_project(project_name: &str, git: bool, ignore: bool) {
     let root_path = Path::new(project_name);
     if root_path.exists() {
