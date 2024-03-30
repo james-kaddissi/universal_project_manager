@@ -2,9 +2,12 @@ use clap::{Arg, Command as ClapCommand };
 use std::fs;
 use std::env;
 use std::io::Write;
-use std::path::Path;
 use std::process::Command;
 use serde::Deserialize;
+
+mod project_init;
+
+use project_init::create_project;
 
 #[derive(Deserialize)]
 struct Config {
@@ -25,20 +28,26 @@ fn read_config() -> Config {
 
 fn main() {
     let matches = ClapCommand::new("upm")
-        .version("0.1.0")
+        .version("0.1.1")
         .about("Manages programming projects")
         .subcommand(
             ClapCommand::new("new")
-                .about("Creates a new Python project")
-                .arg(Arg::new("PROJECT_NAME").help("The name of the project").required(true).index(1))
-                .subcommand(
-                    ClapCommand::new("git")
-                        .about("Initializes the project with git")
-                        .subcommand(
-                            ClapCommand::new("ignore")
-                                .about("Initializes a .gitignore")
-                        )
-                )
+                .about("Creates a new project")
+                .arg(Arg::new("PROJECT_NAME")
+                    .help("The name of the project")
+                    .required(true)
+                    .index(1))
+                .arg(Arg::new("LANGUAGE")
+                    .help("Specifies the language of the project")
+                    .required(true)
+                    .index(2))
+                .arg(Arg::new("git")
+                    .long("git")
+                    .help("Initializes the project with git"))
+                .arg(Arg::new("ignore")
+                    .long("ignore")
+                    .help("Initializes a .gitignore")
+                    .requires("git")) // Makes "ignore" require "git"
         )
         .subcommand(
             ClapCommand::new("add")
@@ -57,21 +66,22 @@ fn main() {
     match matches.subcommand() {
         Some(("new", sub_m)) => {
             let project_name = sub_m.get_one::<String>("PROJECT_NAME").unwrap();
+            let project_language = sub_m.get_one::<String>("LANGUAGE").unwrap();
             match sub_m.subcommand() {
                 Some(("git", _git_matches)) => {
                     // Initialize project with git
                     match _git_matches.subcommand() {
                         Some(("ignore", _ignore_matches)) => {
-                            create_project(project_name, true, true);
+                            create_project(project_name, project_language, true, true);
                         },
                         _ => {
-                            create_project(project_name, true, false);
-                        },
-                    }                    
+                            create_project(project_name, project_language, true, false);
+                        },                   
+                    }
                 },
                 _ => {
                     // Create project without git initialization
-                    create_project(project_name, false, false);
+                    create_project(project_name, project_language, false, false);
                 },
             }
         },
@@ -102,45 +112,6 @@ fn run_project() {
             eprintln!("Failed to execute project: {}", e);
         },
     }
-}
-
-fn create_project(project_name: &str, git: bool, ignore: bool) {
-    let root_path = Path::new(project_name);
-    if root_path.exists() {
-        println!("Project {} already exists.", project_name);
-        return;
-    }
-
-    // Create project root directory
-    fs::create_dir_all(root_path.join("src")).expect("Failed to create project directories");
-
-    // Create main.py inside src
-    let mut main_py = fs::File::create(root_path.join("src/main.py")).expect("Failed to create main.py");
-    writeln!(main_py, "def main():\n    print('Hello, world!')\n\nif __name__ == '__main__':\n    main()").expect("Failed to write to main.py");
-
-    // Create requirements.txt
-    let _ = fs::File::create(root_path.join("requirements.txt")).expect("Failed to create requirements.txt");
-
-    if git {
-        Command::new("git")
-            .args(&["init", project_name])
-            .status()
-            .expect("Failed to initialize git repository");
-        println!("Initialized empty Git repository in {}/.git/", project_name);
-    }
-
-    if ignore {
-        let gitignore_path = Path::new(project_name).join(".gitignore");
-        let gitignore_content = if ignore { "venv/\n__pycache__/\n*.pyc" } else { "" }; // Customize as needed
-        fs::write(gitignore_path, gitignore_content).expect("Failed to create .gitignore");
-        println!("Created .gitignore");
-    }
-
-    // Create virtual environment
-    println!("CREATING PYTHON VENV");
-    create_virtual_env(project_name);
-
-    println!("Project {} created successfully.", project_name);
 }
 
 fn add_package(package_name: &str) {
@@ -176,11 +147,4 @@ fn add_package(package_name: &str) {
     }
 }
 
-fn create_virtual_env(project_path: &str) {
-    Command::new("python3")
-        .args(&["-m", "venv", "venv"])
-        .current_dir(project_path)
-        .status()
-        .expect("Failed to create virtual environment");
-    println!("Virtual environment created successfully.");
-}
+
