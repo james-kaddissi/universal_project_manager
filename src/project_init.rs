@@ -1,12 +1,65 @@
-use std::fs;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use serde::{Serialize, Deserialize};
-use std::io::Write;
+use std::fs::{self, OpenOptions};
+use std::io::{Read, Write};
+use serde_json::{self, Value};
+use std::collections::HashMap;
+
+#[cfg(windows)]
+const DB_PATH: &str = "J:\\ultimate_project_manager\\upm_projects.json"; // Adjust the path as necessary
 
 #[derive(Serialize, Deserialize)]
-struct ProjectMetadata {
-    language: String,
+struct ProjectsDb {
+    projects: HashMap<String, ProjectInfo>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct ProjectInfo {
+    project_path: String,
+    project_language: String,
+    project_main: String,
+}
+
+fn load_projects_db() -> ProjectsDb {
+    let db_path = Path::new(DB_PATH);
+    if !db_path.exists() {
+        return ProjectsDb { projects: HashMap::new() };
+    }
+
+    let mut file = fs::File::open(db_path).expect("Failed to open projects database");
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).expect("Failed to read projects database");
+    serde_json::from_str(&contents).unwrap_or_else(|_| ProjectsDb { projects: HashMap::new() })
+}
+
+fn save_projects_db(db: &ProjectsDb) {
+    let db_path = Path::new(DB_PATH);
+    let contents = serde_json::to_string(db).expect("Failed to serialize projects database");
+    let mut file = OpenOptions::new().write(true).create(true).truncate(true).open(db_path).expect("Failed to open projects database for writing");
+    file.write_all(contents.as_bytes()).expect("Failed to write projects database");
+}
+
+fn add_project_to_db(project_name: &str, project_path: &str, project_language: &str) {
+    let mut db = load_projects_db();
+    let project_main = match project_language {
+        "python" => "./src/main.py",
+        "cpp" | "c++" => "./src/main.cpp",
+        "c" => "./src/main.c",
+        "rust" | "rs" => "./src/main.rs",
+        "javascript" => "./src/main.js",
+        "react" => "./src/App.js", 
+        "ruby" => "./src/main.rb",
+        "html" => "./src/index.html",
+        _ => "./src/main.txt",
+    };
+
+    db.projects.insert(project_name.to_string(), ProjectInfo {
+        project_path: project_path.to_string(),
+        project_language: project_language.to_string(),
+        project_main: project_main.to_string(),
+    });
+    save_projects_db(&db);
 }
 
 pub fn create_project(project_name: &str, project_language: &str, git: bool, ignore: bool) {
@@ -27,7 +80,8 @@ pub fn create_project(project_name: &str, project_language: &str, git: bool, ign
         _ => println!("Unsupported project language."),
     }
 
-    save_project_metadata(project_name, project_language);
+    let project_path = Path::new(project_name).canonicalize().expect("Failed to get absolute path").to_str().unwrap().to_string();
+    add_project_to_db(project_name, &project_path, project_language);
 }
 
 fn initialize_git(project_path: &Path, git: bool, ignore: bool) {
@@ -242,16 +296,6 @@ fn create_python_project(project_name: &str, git: bool, ignore: bool) {
 
     println!("Project {} created successfully.", project_name);
 }
-
-fn save_project_metadata(project_path: &str, language: &str) {
-    let metadata = ProjectMetadata {
-        language: language.to_string(),
-    };
-    let metadata_str = serde_json::to_string(&metadata).expect("Failed to serialize project metadata.");
-    fs::write(Path::new(project_path).join("project_metadata.json"), metadata_str)
-        .expect("Failed to save project metadata.");
-}
-
 fn create_virtual_env(project_path: &str) {
     Command::new("python3")
         .args(&["-m", "venv", "venv"])

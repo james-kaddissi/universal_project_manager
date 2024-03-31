@@ -1,11 +1,13 @@
 use clap::{Arg, Command as ClapCommand };
 use std::fs;
+use std::collections::HashMap;
 use std::env;
 use std::io::Write;
 use std::process::Command;
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
+use std::path::{Path, PathBuf};
 
-mod project_init;
+pub mod project_init;
 
 use project_init::create_project;
 
@@ -20,10 +22,29 @@ struct DefaultFlags {
     ignore: bool,
 }
 
-fn read_config() -> Config {
-    let config_str = fs::read_to_string("upmconfig.toml")
-        .expect("Failed to read upmconfig.toml");
-    toml::from_str(&config_str).expect("Failed to process upmconfig.toml")
+#[derive(Serialize, Deserialize)]
+struct ProjectsDb {
+    projects: HashMap<String, ProjectInfo>,
+}
+
+#[derive(Serialize, Deserialize)]
+struct ProjectInfo {
+    project_path: String,
+    project_language: String,
+    project_main: String,
+}
+
+fn load_projects_db() -> ProjectsDb {
+    let db_path = Path::new("J:\\ultimate_project_manager\\upm_projects.json");
+    let contents = fs::read_to_string(db_path)
+        .expect("Failed to read projects database");
+    serde_json::from_str(&contents).expect("Failed to deserialize projects database")
+}
+
+pub fn read_config_from(path: &Path) -> Config {
+    let config_str = fs::read_to_string(path)
+        .expect("Failed to read config file");
+    toml::from_str(&config_str).expect("Failed to process config file")
 }
 
 fn main() {
@@ -59,7 +80,7 @@ fn main() {
         )
         .subcommand(
             ClapCommand::new("run")
-                .about("Runs the file located at ./src/main.py")
+                .about("Runs the main entrypoint of the project")
         )
         .get_matches();
 
@@ -97,20 +118,42 @@ fn main() {
 }
 
 fn run_project() {
-    let script_path = "./src/main.py";
+    let current_dir = env::current_dir().unwrap();
+    let current_dir_str = current_dir.to_str().unwrap();
+    
+    let db = load_projects_db();
+    
+    let project_info = db.projects.iter().find(|(_key, value)| {
+        current_dir_str.starts_with(&value.project_path)
+    });
 
-    match Command::new("python")
-        .arg(script_path)
-        .status() {
-        Ok(status) if status.success() => {
-            println!("Project ran successfully.");
+    match project_info {
+        Some((_project_name, info)) => {
+            let script_path = Path::new(&info.project_path).join(&info.project_main);
+            let script_path_str = script_path.to_str().unwrap();
+
+            let command = match info.project_language.as_str() {
+                "python" => Command::new("python").arg(script_path_str),
+                "rust" => Command::new("cargo").arg("run").current_dir(script_path.parent().unwrap()),
+                _ => {
+                    eprintln!("Unsupported project language.");
+                    return;
+                }
+            };
+
+            match command.status() {
+                Ok(status) if status.success() => {
+                    println!("Project ran successfully.");
+                },
+                Ok(status) => {
+                    eprintln!("Project execution failed with exit code: {}", status);
+                },
+                Err(e) => {
+                    eprintln!("Failed to execute project: {}", e);
+                },
+            }
         },
-        Ok(status) => {
-            eprintln!("Project execution failed with exit code: {}", status);
-        },
-        Err(e) => {
-            eprintln!("Failed to execute project: {}", e);
-        },
+        None => println!("Current directory is not a recognized UPM project."),
     }
 }
 
