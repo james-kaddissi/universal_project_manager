@@ -99,7 +99,7 @@ fn main() {
 fn run_project() {
     let script_path = "./src/main.py";
 
-    match Command::new("python")
+    match Command::new("python3")
         .arg(script_path)
         .status() {
         Ok(status) if status.success() => {
