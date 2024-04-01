@@ -10,6 +10,7 @@ use std::path::{Path, PathBuf};
 pub mod project_init;
 
 use project_init::create_project;
+use project_init::clean_path;
 
 #[derive(Deserialize)]
 struct Config {
@@ -119,7 +120,7 @@ fn main() {
 
 fn run_project() {
     let current_dir = env::current_dir().unwrap();
-    let current_dir_str = current_dir.to_str().unwrap();
+    let current_dir_str = clean_path(&current_dir);
     
     let db = load_projects_db();
     
@@ -127,41 +128,76 @@ fn run_project() {
         current_dir_str.starts_with(&value.project_path)
     });
 
-    match project_info {
-        Some((_project_name, info)) => {
-            let script_path = Path::new(&info.project_path).join(&info.project_main);
-            let script_path_str = script_path.to_str().unwrap();
+    if let Some((_project_name, info)) = project_info {
+        // Construct the path to the project's main file
+        let script_path = Path::new(&info.project_path).join(&info.project_main);
+        let script_path_str = script_path.to_str().unwrap();
 
-            let command = match info.project_language.as_str() {
-                "python" => Command::new("python").arg(script_path_str),
-                "rust" => Command::new("cargo").arg("run").current_dir(script_path.parent().unwrap()),
-                _ => {
-                    eprintln!("Unsupported project language.");
-                    return;
-                }
-            };
-
-            match command.status() {
-                Ok(status) if status.success() => {
-                    println!("Project ran successfully.");
-                },
-                Ok(status) => {
-                    eprintln!("Project execution failed with exit code: {}", status);
-                },
-                Err(e) => {
+        match info.project_language.as_str() {
+            "python" => {
+                if let Err(e) = Command::new("python").arg(script_path_str).status() {
                     eprintln!("Failed to execute project: {}", e);
-                },
-            }
-        },
-        None => println!("Current directory is not a recognized UPM project."),
+                }
+            },
+            "rust" => {
+                if let Err(e) = Command::new("cargo").arg("run").current_dir(&info.project_path).status() {
+                    eprintln!("Failed to execute project: {}", e);
+                }
+            },
+            "cpp" | "c++" => {
+                let compile_status = if cfg!(target_os = "windows") {
+                    Command::new("g++").args([&info.project_main, "-o", "a.exe"]).status()
+                } else {
+                    Command::new("g++").args([&info.project_main, "-o", "a.out"]).status()
+                };
+
+                if let Ok(status) = compile_status {
+                    if status.success() {
+                        let run_status = if cfg!(target_os = "windows") {
+                            Command::new("./a.exe").status()
+                        } else {
+                            Command::new("./a.out").status()
+                        };
+                        
+                        if let Err(e) = run_status {
+                            eprintln!("Failed to run compiled program: {}", e);
+                        }
+                    } else {
+                        eprintln!("Compilation failed");
+                    }
+                } else {
+                    eprintln!("Failed to compile.");
+                }
+            },
+            "java" => {
+                let compile_status = Command::new("javac").arg(&info.project_main).status();
+                
+                if let Ok(status) = compile_status {
+                    if status.success() {
+                        let class_name = info.project_main.trim_end_matches(".java");
+                        if let Err(e) = Command::new("java").arg(class_name).status() {
+                            eprintln!("Failed to run Java program: {}", e);
+                        }
+                    } else {
+                        eprintln!("Compilation failed");
+                    }
+                } else {
+                    eprintln!("Failed to compile.");
+                }
+            },
+            _ => eprintln!("Unsupported project language."),
+        }
+    } else {
+        println!("Current directory is not a recognized UPM project.");
     }
 }
+
 
 fn add_package(package_name: &str) {
     let current_dir = env::current_dir().expect("Failed to get current directory");
     let requirements_path = current_dir.join("requirements.txt");
 
-    // Append the package name to requirements.txt
+
     let mut file = fs::OpenOptions::new()
         .write(true)
         .append(true)

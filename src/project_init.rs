@@ -62,6 +62,15 @@ fn add_project_to_db(project_name: &str, project_path: &str, project_language: &
     save_projects_db(&db);
 }
 
+pub fn clean_path(path: &Path) -> String {
+    let mut path_str = path.to_string_lossy().into_owned();
+    if cfg!(windows) {
+        // Remove the extended path prefix if present
+        path_str = path_str.trim_start_matches("\\\\?\\").to_string();
+    }
+    path_str
+}
+
 pub fn create_project(project_name: &str, project_language: &str, git: bool, ignore: bool) {
     match project_language {
         "python" => create_python_project(project_name, git, ignore),
@@ -80,7 +89,7 @@ pub fn create_project(project_name: &str, project_language: &str, git: bool, ign
         _ => println!("Unsupported project language."),
     }
 
-    let project_path = Path::new(project_name).canonicalize().expect("Failed to get absolute path").to_str().unwrap().to_string();
+    let project_path = clean_path(&Path::new(project_name).canonicalize().expect("Failed to get absolute path"));
     add_project_to_db(project_name, &project_path, project_language);
 }
 
