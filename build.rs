@@ -5,6 +5,9 @@ fn main() {
 
     #[cfg(target_os = "unix")]
     unix_instructions();
+
+    #[cfg(target_os = "macos")]
+    unix_instructions();
 }
 
 fn windows_instructions() {
