@@ -169,13 +169,39 @@ fn run_project() {
                     eprintln!("Failed to compile.");
                 }
             },
-            "java" => {
-                let compile_status = Command::new("javac").arg(&info.project_main).status();
-                
+            "c"=> {
+                let compile_status = if cfg!(target_os = "windows") {
+                    Command::new("gcc").args([&info.project_main, "-o", "a.exe"]).status()
+                } else {
+                    Command::new("gcc").args([&info.project_main, "-o", "a.out"]).status()
+                };
+
                 if let Ok(status) = compile_status {
                     if status.success() {
-                        let class_name = info.project_main.trim_end_matches(".java");
-                        if let Err(e) = Command::new("java").arg(class_name).status() {
+                        let run_status = if cfg!(target_os = "windows") {
+                            Command::new("./a.exe").status()
+                        } else {
+                            Command::new("./a.out").status()
+                        };
+                        
+                        if let Err(e) = run_status {
+                            eprintln!("Failed to run compiled program: {}", e);
+                        }
+                    } else {
+                        eprintln!("Compilation failed");
+                    }
+                } else {
+                    eprintln!("Failed to compile.");
+                }
+            },
+            "java" => {
+                let compile_status = Command::new("javac").arg(&info.project_main).status();
+                if let Ok(status) = compile_status {
+                    if status.success() {
+                        let class_path = Path::new(&info.project_path).join("src");
+                        let class_path_str = class_path.to_str().unwrap();
+                        let class_name = "Main";
+                        if let Err(e) = Command::new("java").arg("-cp").arg(class_path_str).arg(class_name).status() {
                             eprintln!("Failed to run Java program: {}", e);
                         }
                     } else {
@@ -185,6 +211,40 @@ fn run_project() {
                     eprintln!("Failed to compile.");
                 }
             },
+            "javascript" => {
+                if let Err(e) = Command::new("node").arg(script_path_str).status() {
+                    eprintln!("Failed to execute JavaScript project: {}", e);
+                }
+            },
+            "cs" | "c#" => {
+                if let Err(e) = Command::new("dotnet").arg("run").current_dir(&info.project_path).status() {
+                    eprintln!("Failed to execute C# project: {}", e);
+                }
+            },
+            "react" => {
+                if let Err(e) = Command::new("npm").arg("start").current_dir(&info.project_path).status() {
+                    eprintln!("Failed to start React app: {}", e);
+                }
+            },
+            "ruby" => {
+                if let Err(e) = Command::new("ruby").arg(script_path_str).status() {
+                    eprintln!("Failed to execute Ruby script: {}", e);
+                }
+            },
+            "html" => {
+                // Typically, HTML files are opened in a web browser. This example uses the `xdg-open` command on Unix-like systems or `start` on Windows.
+                if cfg!(target_os = "windows") {
+                    if let Err(e) = Command::new("cmd").args(&["/c", "start", script_path_str]).status() {
+                        eprintln!("Failed to open HTML file: {}", e);
+                    }
+                } else {
+                    if let Err(e) = Command::new("xdg-open").arg(script_path_str).status() {
+                        eprintln!("Failed to open HTML file: {}", e);
+                    }
+                }
+            },
+            
+            
             _ => eprintln!("Unsupported project language."),
         }
     } else {
@@ -193,7 +253,7 @@ fn run_project() {
 }
 
 
-fn add_package(package_name: &str) {
+fn add_package(package_name: &str) { // only works for python and pip, will come back to this
     let current_dir = env::current_dir().expect("Failed to get current directory");
     let requirements_path = current_dir.join("requirements.txt");
 
@@ -209,7 +269,7 @@ fn add_package(package_name: &str) {
     let pip_path = if cfg!(target_os = "windows") {
         current_dir.join("venv").join("Scripts").join("pip.exe")
     } else {
-        // For Unix-like systems
+        // unix
         current_dir.join("venv").join("bin").join("pip")
     };
 

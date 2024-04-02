@@ -48,6 +48,8 @@ fn add_project_to_db(project_name: &str, project_path: &str, project_language: &
         "c" => "./src/main.c",
         "rust" | "rs" => "./src/main.rs",
         "javascript" => "./src/main.js",
+        "java" => "./src/Main.java",
+        "cs" | "c#" => "./src/Program.cs",
         "react" => "./src/App.js", 
         "ruby" => "./src/main.rb",
         "html" => "./src/index.html",
@@ -65,7 +67,6 @@ fn add_project_to_db(project_name: &str, project_path: &str, project_language: &
 pub fn clean_path(path: &Path) -> String {
     let mut path_str = path.to_string_lossy().into_owned();
     if cfg!(windows) {
-        // Remove the extended path prefix if present
         path_str = path_str.trim_start_matches("\\\\?\\").to_string();
     }
     path_str
@@ -150,7 +151,6 @@ fn create_rust_project(project_name: &str, git: bool, ignore: bool) {
         .expect("Failed to create Rust project with Cargo");
 
     if git && ignore {
-        // Cargo initializes git by default
         let gitignore_path = Path::new(project_name).join(".gitignore");
         let gitignore_content = "target/\n**/*.log\n.DS_Store";
         fs::write(gitignore_path, gitignore_content).expect("Failed to create .gitignore");
@@ -167,13 +167,16 @@ fn create_html_project(project_name: &str, git: bool, ignore: bool) {
         return;
     }
 
-    fs::create_dir_all(root_path).expect("Failed to create project directories");
-    let mut index_html = fs::File::create(root_path.join("index.html")).expect("Failed to create index.html");
+    let src_path = root_path.join("src");
+    fs::create_dir_all(&src_path).expect("Failed to create project directories");
+
+    let mut index_html = fs::File::create(src_path.join("index.html")).expect("Failed to create index.html");
     writeln!(index_html, "<!DOCTYPE html>\n<html>\n<head>\n    <title>{}</title>\n</head>\n<body>\n    <h1>Hello, World!</h1>\n</body>\n</html>", project_name).expect("Failed to write to index.html");
 
     initialize_git(root_path, git, ignore);
     println!("Project {} created successfully.", project_name);
 }
+
 
 
 fn create_react_project(project_name: &str, git: bool, ignore: bool) {
@@ -183,7 +186,6 @@ fn create_react_project(project_name: &str, git: bool, ignore: bool) {
         .status()
         .expect("Failed to create React project");
 
-    // Git and .gitignore are handled by create-react-app
     if git && ignore {
         println!("React project initialized with git and .gitignore by default.");
     }
@@ -198,11 +200,9 @@ fn create_java_project(project_name: &str, git: bool, ignore: bool) {
         return;
     }
 
-    // Creating the src folder to store Java files
     let src_path = root_path.join("src");
     fs::create_dir_all(&src_path).expect("Failed to create project directories");
 
-    // Creating a simple HelloWorld.java file
     let mut main_java = fs::File::create(src_path.join("Main.java")).expect("Failed to create Main.java");
     writeln!(main_java, "public class Main {{\n    public static void main(String[] args) {{\n        System.out.println(\"Hello, World!\");\n    }}\n}}").expect("Failed to write to Main.java");
 
@@ -220,11 +220,9 @@ fn create_javascript_project(project_name: &str, git: bool, ignore: bool) {
 
     fs::create_dir_all(&root_path).expect("Failed to create project directories");
 
-    // Creating a simple index.js file
     let mut index_js = fs::File::create(root_path.join("index.js")).expect("Failed to create index.js");
     writeln!(index_js, "console.log('Hello, World!');").expect("Failed to write to index.js");
 
-    // Optionally, initialize npm and create a package.json file
     Command::new("npm")
         .args(&["init", "-y"])
         .current_dir(&root_path)
@@ -245,7 +243,6 @@ fn create_ruby_project(project_name: &str, git: bool, ignore: bool) {
 
     fs::create_dir_all(&root_path).expect("Failed to create project directories");
 
-    // Creating a simple main.rb file
     let mut main_rb = fs::File::create(root_path.join("main.rb")).expect("Failed to create main.rb");
     writeln!(main_rb, "puts 'Hello, World!'").expect("Failed to write to main.rb");
 
@@ -255,7 +252,6 @@ fn create_ruby_project(project_name: &str, git: bool, ignore: bool) {
 
 fn create_cs_project(project_name: &str, git: bool, ignore: bool) {
     println!("Initializing C# project...");
-    // The dotnet CLI automatically creates a new directory for the project
     Command::new("dotnet")
         .args(&["new", "console", "-n", project_name])
         .status()
@@ -274,14 +270,11 @@ fn create_python_project(project_name: &str, git: bool, ignore: bool) {
         return;
     }
 
-    // Create project root directory
     fs::create_dir_all(root_path.join("src")).expect("Failed to create project directories");
 
-    // Create main.py inside src
     let mut main_py = fs::File::create(root_path.join("src/main.py")).expect("Failed to create main.py");
     writeln!(main_py, "def main():\n    print('Hello, world!')\n\nif __name__ == '__main__':\n    main()").expect("Failed to write to main.py");
 
-    // Create requirements.txt
     let _ = fs::File::create(root_path.join("requirements.txt")).expect("Failed to create requirements.txt");
 
     if git {
@@ -299,7 +292,6 @@ fn create_python_project(project_name: &str, git: bool, ignore: bool) {
         println!("Created .gitignore");
     }
 
-    // Create virtual environment
     println!("CREATING PYTHON VENV");
     create_virtual_env(project_name);
 
