@@ -1,4 +1,4 @@
-[DefaultFlags]
+[default_flags]
 "git" = false
 "ignore" = false 
 

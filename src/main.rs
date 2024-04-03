@@ -5,7 +5,7 @@ use std::env;
 use std::io::Write;
 use std::process::Command;
 use serde::{Serialize, Deserialize};
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 pub mod project_init;
 
@@ -14,7 +14,7 @@ use project_init::clean_path;
 
 #[derive(Deserialize)]
 struct Config {
-    DefaultFlags: DefaultFlags,
+    default_flags: DefaultFlags,
 }
 
 #[derive(Deserialize)]
@@ -36,21 +36,23 @@ struct ProjectInfo {
 }
 
 fn load_projects_db() -> ProjectsDb {
-    let db_path = Path::new("J:\\ultimate_project_manager\\upm_projects.json");
+    let db_path = Path::new("J:\\ultimate_project_manager\\upm_projects.json"); // ADJUST PATH TO WHEREVER YOUR ROOT AND JSON IS LOCATED
     let contents = fs::read_to_string(db_path)
         .expect("Failed to read projects database");
     serde_json::from_str(&contents).expect("Failed to deserialize projects database")
 }
 
-pub fn read_config_from(path: &Path) -> Config {
+fn read_config_from(path: &Path) -> Config {
     let config_str = fs::read_to_string(path)
         .expect("Failed to read config file");
     toml::from_str(&config_str).expect("Failed to process config file")
 }
 
 fn main() {
+    let config_path = Path::new("J:\\ultimate_project_manager\\upmconfig.toml"); // ADJUST PATH TO WHEREVER YOUR ROOT AND toml IS LOCATED
+    let config = read_config_from(config_path);
     let matches = ClapCommand::new("upm")
-        .version("0.1.1")
+        .version("0.1.2")
         .about("Manages programming projects")
         .subcommand(
             ClapCommand::new("new")
@@ -65,10 +67,12 @@ fn main() {
                     .index(2))
                 .arg(Arg::new("git")
                     .long("git")
-                    .help("Initializes the project with git"))
+                    .help("Initializes the project with git")
+                    .action(clap::ArgAction::SetTrue)) 
                 .arg(Arg::new("ignore")
                     .long("ignore")
                     .help("Initializes a .gitignore")
+                    .action(clap::ArgAction::SetTrue)
                     .requires("git")) // Makes "ignore" require "git"
         )
         .subcommand(
@@ -89,29 +93,17 @@ fn main() {
         Some(("new", sub_m)) => {
             let project_name = sub_m.get_one::<String>("PROJECT_NAME").unwrap();
             let project_language = sub_m.get_one::<String>("LANGUAGE").unwrap();
-            match sub_m.subcommand() {
-                Some(("git", _git_matches)) => {
-                    // Initialize project with git
-                    match _git_matches.subcommand() {
-                        Some(("ignore", _ignore_matches)) => {
-                            create_project(project_name, project_language, true, true);
-                        },
-                        _ => {
-                            create_project(project_name, project_language, true, false);
-                        },                   
-                    }
-                },
-                _ => {
-                    // Create project without git initialization
-                    create_project(project_name, project_language, false, false);
-                },
-            }
+        
+            let git = sub_m.contains_id("git") || config.default_flags.git;
+            let ignore = sub_m.contains_id("ignore") || (config.default_flags.ignore && git);
+        
+            create_project(project_name, project_language, git, ignore);
         },
         Some(("add", sub_m)) => {
             let package_name = sub_m.get_one::<String>("PACKAGE_NAME").unwrap();
             add_package(package_name);
         },
-        Some(("run", sub_m)) => {
+        Some(("run", _)) => {
             run_project();
         }
         _ => {}
