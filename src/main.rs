@@ -92,6 +92,14 @@ fn main() {
         .subcommand(
             ClapCommand::new("init")
                 .about("Initializes the current directory as a upm project")
+                .arg(Arg::new("LANGUAGE")
+                    .help("Specifies the language of the project")
+                    .required(false)
+                    .index(1))
+                .arg(Arg::new("MAIN")
+                    .help("Specifies the main entry point of the project")
+                    .required(false)
+                    .index(2))
         )
         .get_matches();
 
@@ -112,46 +120,57 @@ fn main() {
         Some(("run", _)) => {
             run_project();
         },
-        Some(("init", _)) => {
-            init_project();
+        Some(("init", sub_m)) => {
+            let project_language = sub_m.get_one::<String>("LANGUAGE");
+            let project_main = sub_m.get_one::<String>("MAIN");
+            init_project(project_language.map(String::as_str), project_main.map(String::as_str));
         }
         _ => {}
     }
 }
-fn init_project() {
+fn init_project(project_language: Option<&str>, project_main: Option<&str>) {
     let current_dir = env::current_dir().unwrap();
     let current_dir_str = clean_path(&current_dir);
-    
     let db = load_projects_db();
-    
+
     if db.projects.iter().any(|(_key, value)| current_dir_str.starts_with(&value.project_path)) {
         println!("This directory is already recognized as a UPM project.");
         return;
     }
-    
-    println!("This directory is not recognized as a UPM project.");
-    println!("Enter the project language (e.g., python, rust, cpp):");
-    let mut project_language = String::new();
-    io::stdin().read_line(&mut project_language).expect("Failed to read line");
-    let project_language = project_language.trim();
-    
-    let mut project_main = String::new();
-    loop {
-        println!("Enter the relative path to the main file to run (e.g., src/main.py):");
-        io::stdout().flush().expect("Failed to flush stdout"); 
-        project_main.clear(); 
-        io::stdin().read_line(&mut project_main).expect("Failed to read line");
-        let project_main = project_main.trim();
-        
-        let main_file_path = current_dir.join(project_main);
-        if main_file_path.exists() {
-            add_project_to_db(current_dir.file_name().unwrap().to_str().unwrap(), &current_dir_str, project_language, project_main);
-            println!("Initialized '{}' as a UPM project with language '{}' and main file '{}'.", current_dir.file_name().unwrap().to_str().unwrap(), project_language, project_main);
-            break;
-        } else {
-            println!("The file '{}' does not exist. Please enter a valid path.", project_main);
-        }
-    }
+
+    let project_language = match project_language {
+        Some(lang) => lang.to_string(),
+        None => {
+            let mut input = String::new();
+            println!("Enter the project language (e.g., python, rust, cpp):");
+            io::stdin().read_line(&mut input).expect("Failed to read line");
+            input.trim().to_string()
+        },
+    };
+
+    let project_main = match project_main {
+        Some(main) => main.to_string(),
+        None => {
+            let mut input = String::new();
+            loop {
+                println!("Enter the relative path to the main file to run (e.g., src/main.py):");
+                io::stdout().flush().expect("Failed to flush stdout");
+                input.clear();
+                io::stdin().read_line(&mut input).expect("Failed to read line");
+                let input = input.trim();
+                let main_file_path = current_dir.join(input);
+
+                if main_file_path.exists() {
+                    break input.to_string();
+                } else {
+                    println!("The file '{}' does not exist. Please enter a valid path.", input);
+                }
+            }
+        },
+    };
+
+    add_project_to_db(current_dir.file_name().unwrap().to_str().unwrap(), &current_dir_str, &project_language, &project_main);
+    println!("Initialized '{}' as a UPM project with language '{}' and main file '{}'.", current_dir.file_name().unwrap().to_str().unwrap(), project_language, project_main);
 }
 
 fn run_project() {
