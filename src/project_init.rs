@@ -40,27 +40,15 @@ fn save_projects_db(db: &ProjectsDb) {
     file.write_all(contents.as_bytes()).expect("Failed to write projects database");
 }
 
-pub fn add_project_to_db(project_name: &str, project_path: &str, project_language: &str) {
+pub fn add_project_to_db(project_name: &str, project_path: &str, project_language: &str, project_main: &str) {
     let mut db = load_projects_db();
-    let project_main = match project_language {
-        "python" => "./src/main.py",
-        "cpp" | "c++" => "./src/main.cpp",
-        "c" => "./src/main.c",
-        "rust" | "rs" => "./src/main.rs",
-        "javascript" => "./src/main.js",
-        "java" => "./src/Main.java",
-        "cs" | "c#" => "./src/Program.cs",
-        "react" => "./src/App.js", 
-        "ruby" => "./src/main.rb",
-        "html" => "./src/index.html",
-        _ => "./src/main.txt",
-    };
-
+    
     db.projects.insert(project_name.to_string(), ProjectInfo {
         project_path: project_path.to_string(),
         project_language: project_language.to_string(),
-        project_main: project_main.to_string(),
+        project_main: project_main.to_string(), // Use the provided path
     });
+    
     save_projects_db(&db);
 }
 
@@ -90,8 +78,22 @@ pub fn create_project(project_name: &str, project_language: &str, git: bool, ign
         _ => println!("Unsupported project language."),
     }
 
+    let project_main = match project_language {
+        "python" => "./src/main.py",
+        "cpp" | "c++" => "./src/main.cpp",
+        "c" => "./src/main.c",
+        "rust" | "rs" => "./src/main.rs",
+        "javascript" => "./src/main.js",
+        "java" => "./src/Main.java",
+        "cs" | "c#" => "./src/Program.cs",
+        "react" => "./src/App.js", 
+        "ruby" => "./src/main.rb",
+        "html" => "./src/index.html",
+        _ => "./src/main.txt",
+    };
+
     let project_path = clean_path(&Path::new(project_name).canonicalize().expect("Failed to get absolute path"));
-    add_project_to_db(project_name, &project_path, project_language);
+    add_project_to_db(project_name, &project_path, project_language, project_main);
 }
 
 fn initialize_git(project_path: &Path, git: bool, ignore: bool) {

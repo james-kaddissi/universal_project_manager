@@ -126,17 +126,31 @@ fn init_project() {
     
     if db.projects.iter().any(|(_key, value)| current_dir_str.starts_with(&value.project_path)) {
         println!("This directory is already recognized as a UPM project.");
-    } else {
-        println!("This directory is not recognized as a UPM project.");
-        println!("Enter the project language (e.g., python, rust, cpp): ");
-        let mut project_language = String::new();
-        io::stdin().read_line(&mut project_language).expect("Failed to read line");
-        let project_language = project_language.trim();
+        return;
+    }
+    
+    println!("This directory is not recognized as a UPM project.");
+    println!("Enter the project language (e.g., python, rust, cpp):");
+    let mut project_language = String::new();
+    io::stdin().read_line(&mut project_language).expect("Failed to read line");
+    let project_language = project_language.trim();
+    
+    let mut project_main = String::new();
+    loop {
+        println!("Enter the relative path to the main file to run (e.g., src/main.py):");
+        io::stdout().flush().expect("Failed to flush stdout"); 
+        project_main.clear(); 
+        io::stdin().read_line(&mut project_main).expect("Failed to read line");
+        let project_main = project_main.trim();
         
-        let project_name = current_dir.file_name().unwrap().to_str().unwrap();
-        
-        add_project_to_db(project_name, &current_dir_str, project_language);
-        println!("Initialized '{}' as a UPM project with language '{}'.", project_name, project_language);
+        let main_file_path = current_dir.join(project_main);
+        if main_file_path.exists() {
+            add_project_to_db(current_dir.file_name().unwrap().to_str().unwrap(), &current_dir_str, project_language, project_main);
+            println!("Initialized '{}' as a UPM project with language '{}' and main file '{}'.", current_dir.file_name().unwrap().to_str().unwrap(), project_language, project_main);
+            break;
+        } else {
+            println!("The file '{}' does not exist. Please enter a valid path.", project_main);
+        }
     }
 }
 
