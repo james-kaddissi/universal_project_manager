@@ -6,11 +6,13 @@ use std::io::Write;
 use std::process::Command;
 use serde::{Serialize, Deserialize};
 use std::path::Path;
+use std::io;
 
 pub mod project_init;
 
 use project_init::create_project;
 use project_init::clean_path;
+use project_init::add_project_to_db;
 
 #[derive(Deserialize)]
 struct Config {
@@ -87,6 +89,10 @@ fn main() {
             ClapCommand::new("run")
                 .about("Runs the main entrypoint of the project")
         )
+        .subcommand(
+            ClapCommand::new("init")
+                .about("Initializes the current directory as a upm project")
+        )
         .get_matches();
 
     match matches.subcommand() {
@@ -105,8 +111,32 @@ fn main() {
         },
         Some(("run", _)) => {
             run_project();
+        },
+        Some(("init", _)) => {
+            init_project();
         }
         _ => {}
+    }
+}
+fn init_project() {
+    let current_dir = env::current_dir().unwrap();
+    let current_dir_str = clean_path(&current_dir);
+    
+    let db = load_projects_db();
+    
+    if db.projects.iter().any(|(_key, value)| current_dir_str.starts_with(&value.project_path)) {
+        println!("This directory is already recognized as a UPM project.");
+    } else {
+        println!("This directory is not recognized as a UPM project.");
+        println!("Enter the project language (e.g., python, rust, cpp): ");
+        let mut project_language = String::new();
+        io::stdin().read_line(&mut project_language).expect("Failed to read line");
+        let project_language = project_language.trim();
+        
+        let project_name = current_dir.file_name().unwrap().to_str().unwrap();
+        
+        add_project_to_db(project_name, &current_dir_str, project_language);
+        println!("Initialized '{}' as a UPM project with language '{}'.", project_name, project_language);
     }
 }
 

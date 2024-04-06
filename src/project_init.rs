@@ -40,7 +40,7 @@ fn save_projects_db(db: &ProjectsDb) {
     file.write_all(contents.as_bytes()).expect("Failed to write projects database");
 }
 
-fn add_project_to_db(project_name: &str, project_path: &str, project_language: &str) {
+pub fn add_project_to_db(project_name: &str, project_path: &str, project_language: &str) {
     let mut db = load_projects_db();
     let project_main = match project_language {
         "python" => "./src/main.py",
