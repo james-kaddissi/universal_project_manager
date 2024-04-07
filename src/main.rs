@@ -51,7 +51,12 @@ fn read_config_from(path: &Path) -> Config {
 }
 
 fn main() {
+    #[cfg(unix)]
+    let config_path = Path::new("/Users/james/WinDesktop/ultimate_project_manager/upmconfig.toml"); // ADJUST PATH TO WHEREVER YOUR ROOT AND toml IS LOCATED
+    
+    #[cfg(windows)]
     let config_path = Path::new("J:\\ultimate_project_manager\\upmconfig.toml"); // ADJUST PATH TO WHEREVER YOUR ROOT AND toml IS LOCATED
+    
     let config = read_config_from(config_path);
     let matches = ClapCommand::new("upm")
         .version("0.1.2")

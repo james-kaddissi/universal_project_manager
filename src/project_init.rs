@@ -9,6 +9,9 @@ use std::collections::HashMap;
 #[cfg(windows)]
 const DB_PATH: &str = "J:\\ultimate_project_manager\\upm_projects.json"; // Adjust the path as necessary
 
+#[cfg(unix)]
+const DB_PATH: &str = "/Users/james/WinDesktop/ultimate_project_manager/upm_projects.json"; 
+
 #[derive(Serialize, Deserialize)]
 struct ProjectsDb {
     projects: HashMap<String, ProjectInfo>,
