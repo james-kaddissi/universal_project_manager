@@ -10,6 +10,13 @@ use std::io;
 
 pub mod project_init;
 
+#[cfg(windows)]
+const DB_PATH: &str = "J:\\ultimate_project_manager\\upm_projects.json"; // Adjust the path as necessary
+
+#[cfg(unix)]
+const DB_PATH: &str = "/Users/james/WinDesktop/ultimate_project_manager/upm_projects.json"; 
+
+
 use project_init::create_project;
 use project_init::clean_path;
 use project_init::add_project_to_db;
@@ -38,7 +45,7 @@ struct ProjectInfo {
 }
 
 fn load_projects_db() -> ProjectsDb {
-    let db_path = Path::new("J:\\ultimate_project_manager\\upm_projects.json"); // ADJUST PATH TO WHEREVER YOUR ROOT AND JSON IS LOCATED
+    let db_path = Path::new(DB_PATH); // ADJUST PATH TO WHEREVER YOUR ROOT AND JSON IS LOCATED
     let contents = fs::read_to_string(db_path)
         .expect("Failed to read projects database");
     serde_json::from_str(&contents).expect("Failed to deserialize projects database")
@@ -195,7 +202,7 @@ fn run_project() {
 
         match info.project_language.as_str() {
             "python" => {
-                if let Err(e) = Command::new("python").arg(script_path_str).status() {
+                if let Err(e) = Command::new("python3").arg(script_path_str).status() {
                     eprintln!("Failed to execute project: {}", e);
                 }
             },
