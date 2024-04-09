@@ -304,7 +304,12 @@ fn run_project() {
                     if let Err(e) = Command::new("cmd").args(&["/c", "start", script_path_str]).status() {
                         eprintln!("Failed to open HTML file: {}", e);
                     }
-                } else {
+                } else if cfg!(target_os = "macos") {
+                    if let Err(e) = Command::new("open").arg(script_path_str).status() {
+                        eprintln!("Failed to open HTML file: {}", e);
+                    }
+                }
+                else {
                     if let Err(e) = Command::new("xdg-open").arg(script_path_str).status() {
                         eprintln!("Failed to open HTML file: {}", e);
                     }
