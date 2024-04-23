@@ -10,15 +10,15 @@ use std::collections::HashMap;
 const DB_PATH: &str = "J:\\ultimate_project_manager\\upm_projects.json"; // Adjust the path as necessary
 
 #[derive(Serialize, Deserialize)]
-struct ProjectsDb {
-    projects: HashMap<String, ProjectInfo>,
+pub struct ProjectsDb {
+    pub projects: HashMap<String, ProjectInfo>,
 }
 
 #[derive(Serialize, Deserialize)]
-struct ProjectInfo {
-    project_path: String,
-    project_language: String,
-    project_main: String,
+pub struct ProjectInfo {
+    pub project_path: String,
+    pub project_language: String,
+    pub project_main: String,
 }
 
 fn load_projects_db() -> ProjectsDb {
@@ -33,7 +33,7 @@ fn load_projects_db() -> ProjectsDb {
     serde_json::from_str(&contents).unwrap_or_else(|_| ProjectsDb { projects: HashMap::new() })
 }
 
-fn save_projects_db(db: &ProjectsDb) {
+pub fn save_projects_db(db: &ProjectsDb) {
     let db_path = Path::new(DB_PATH);
     let contents = serde_json::to_string(db).expect("Failed to serialize projects database");
     let mut file = OpenOptions::new().write(true).create(true).truncate(true).open(db_path).expect("Failed to open projects database for writing");

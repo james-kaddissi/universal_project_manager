@@ -10,9 +10,8 @@ use std::io;
 
 pub mod project_init;
 
-use project_init::create_project;
-use project_init::clean_path;
-use project_init::add_project_to_db;
+use project_init::{ProjectsDb, ProjectInfo, create_project, clean_path, add_project_to_db, save_projects_db};
+
 
 #[derive(Deserialize)]
 struct Config {
@@ -25,17 +24,6 @@ struct DefaultFlags {
     ignore: bool,
 }
 
-#[derive(Serialize, Deserialize)]
-struct ProjectsDb {
-    projects: HashMap<String, ProjectInfo>,
-}
-
-#[derive(Serialize, Deserialize)]
-struct ProjectInfo {
-    project_path: String,
-    project_language: String,
-    project_main: String,
-}
 
 fn load_projects_db() -> ProjectsDb {
     let db_path = Path::new("J:\\ultimate_project_manager\\upm_projects.json"); // ADJUST PATH TO WHEREVER YOUR ROOT AND JSON IS LOCATED
@@ -101,6 +89,18 @@ fn main() {
                     .required(false)
                     .index(2))
         )
+        .subcommand(
+            ClapCommand::new("config")
+                .about("Allows you to make modifications to the upm project settings")
+                .arg(Arg::new("MODIFIER")
+                    .help("Specifies the desired modifier of the project")
+                    .required(true)
+                    .index(1))
+                .arg(Arg::new("ARGUMENT")
+                    .help("pass the desired arguments")
+                    .required(true)
+                    .index(2))
+        )
         .get_matches();
 
     match matches.subcommand() {
@@ -124,7 +124,15 @@ fn main() {
             let project_language = sub_m.get_one::<String>("LANGUAGE");
             let project_main = sub_m.get_one::<String>("MAIN");
             init_project(project_language.map(String::as_str), project_main.map(String::as_str));
-        }
+        },
+        Some(("config", sub_m)) => {
+            let modifier = sub_m.get_one::<String>("MODIFIER").unwrap();
+            let argument = sub_m.get_one::<String>("ARGUMENT").unwrap();
+
+            if modifier == "main" {
+                set_main_path(argument);
+            }
+        },
         _ => {}
     }
 }
@@ -341,4 +349,21 @@ fn add_package(package_name: &str) { // only works for python and pip, will come
     }
 }
 
+fn set_main_path(main_path: &str) {
+    let current_dir = env::current_dir().unwrap();
+    let current_dir_str = clean_path(&current_dir);
+    let mut db = load_projects_db();
 
+    let project = db.projects.iter_mut().find(|(_key, value)| {
+        current_dir_str.starts_with(&value.project_path)
+    });
+
+    match project {
+        Some((_, project_info)) => {
+            project_info.project_main = main_path.to_string();
+            save_projects_db(&db);
+            println!("Project main path updated to '{}'", main_path);
+        },
+        None => println!("No project found in the current directory."),
+    }
+}
