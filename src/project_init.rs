@@ -8,6 +8,9 @@ use std::collections::HashMap;
 
 #[cfg(windows)]
 const DB_PATH: &str = "J:\\ultimate_project_manager\\upm_projects.json"; // Adjust the path as necessary
+// obviously these paths will only work on my machine. If you have only one machine you work on windows or unix, then you only need that one (or just leave both the other OS code will be ignored), then change the path to wherever this project is located
+#[cfg(unix)]
+const DB_PATH: &str = "/Users/james/WinDesktop/ultimate_project_manager/upm_projects.json"; 
 
 #[derive(Serialize, Deserialize)]
 pub struct ProjectsDb {

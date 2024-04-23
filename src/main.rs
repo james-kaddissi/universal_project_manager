@@ -5,10 +5,44 @@ use std::env;
 use std::io::Write;
 use std::process::Command;
 use serde::{Serialize, Deserialize};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::io;
 
 pub mod project_init;
+
+enum PackageManager {
+    Pip,
+    Cargo,
+    Npm,
+    Gem,
+    Other(String), // For package managers that are just a single command
+}
+
+
+
+#[cfg(windows)]
+const DB_PATH: &str = "J:\\ultimate_project_manager\\upm_projects.json"; // Adjust the path as necessary
+
+#[cfg(unix)]
+const DB_PATH: &str = "/Users/james/WinDesktop/ultimate_project_manager/upm_projects.json"; 
+
+
+enum PackageManager {
+    Pip,
+    Cargo,
+    Npm,
+    Gem,
+    Other(String), // For package managers that are just a single command
+}
+
+
+
+#[cfg(windows)]
+const DB_PATH: &str = "J:\\ultimate_project_manager\\upm_projects.json"; // Adjust the path as necessary
+
+#[cfg(unix)]
+const DB_PATH: &str = "/Users/james/WinDesktop/ultimate_project_manager/upm_projects.json"; 
+
 
 use project_init::{ProjectsDb, ProjectInfo, create_project, clean_path, add_project_to_db, save_projects_db};
 
@@ -26,7 +60,7 @@ struct DefaultFlags {
 
 
 fn load_projects_db() -> ProjectsDb {
-    let db_path = Path::new("J:\\ultimate_project_manager\\upm_projects.json"); // ADJUST PATH TO WHEREVER YOUR ROOT AND JSON IS LOCATED
+    let db_path = Path::new(DB_PATH); // ADJUST PATH TO WHEREVER YOUR ROOT AND JSON IS LOCATED
     let contents = fs::read_to_string(db_path)
         .expect("Failed to read projects database");
     serde_json::from_str(&contents).expect("Failed to deserialize projects database")
@@ -39,7 +73,12 @@ fn read_config_from(path: &Path) -> Config {
 }
 
 fn main() {
+    #[cfg(unix)]
+    let config_path = Path::new("/Users/james/WinDesktop/ultimate_project_manager/upmconfig.toml"); // ADJUST PATH TO WHEREVER YOUR ROOT AND toml IS LOCATED
+    
+    #[cfg(windows)]
     let config_path = Path::new("J:\\ultimate_project_manager\\upmconfig.toml"); // ADJUST PATH TO WHEREVER YOUR ROOT AND toml IS LOCATED
+    
     let config = read_config_from(config_path);
     let matches = ClapCommand::new("upm")
         .version("0.1.2")
@@ -198,7 +237,7 @@ fn run_project() {
 
         match info.project_language.as_str() {
             "python" => {
-                if let Err(e) = Command::new("python").arg(script_path_str).status() {
+                if let Err(e) = Command::new("python3").arg(script_path_str).status() {
                     eprintln!("Failed to execute project: {}", e);
                 }
             },
@@ -300,7 +339,12 @@ fn run_project() {
                     if let Err(e) = Command::new("cmd").args(&["/c", "start", script_path_str]).status() {
                         eprintln!("Failed to open HTML file: {}", e);
                     }
-                } else {
+                } else if cfg!(target_os = "macos") {
+                    if let Err(e) = Command::new("open").arg(script_path_str).status() {
+                        eprintln!("Failed to open HTML file: {}", e);
+                    }
+                }
+                else {
                     if let Err(e) = Command::new("xdg-open").arg(script_path_str).status() {
                         eprintln!("Failed to open HTML file: {}", e);
                     }
@@ -316,37 +360,102 @@ fn run_project() {
 }
 
 
-fn add_package(package_name: &str) { // only works for python and pip, will come back to this
+fn add_package(package_name: &str) {
     let current_dir = env::current_dir().expect("Failed to get current directory");
-    let requirements_path = current_dir.join("requirements.txt");
+    let current_dir_str = clean_path(&current_dir);
 
+    let db = load_projects_db();
+    
+    let project_info = db.projects.iter().find(|(_key, value)| {
+        current_dir_str.starts_with(&value.project_path)
+    });
 
-    let mut file = fs::OpenOptions::new()
-        .write(true)
-        .append(true)
-        .open(&requirements_path)
-        .expect("Failed to open requirements.txt");
-    writeln!(file, "{}", package_name).expect("Failed to write to requirements.txt");
+    if let Some((_project_name, info)) = project_info {
+        let package_manager = match info.project_language.as_str() {
+            "python" => PackageManager::Pip,
+            "rust" => PackageManager::Cargo,
+            "javascript" => PackageManager::Npm,
+            "ruby" => PackageManager::Gem,
+            _ => {
+                println!("Package management not supported for {}", info.project_language);
+                return;
+            },
+        };
 
-    // Determine the correct path for pip based on the operating system
-    let pip_path = if cfg!(target_os = "windows") {
-        current_dir.join("venv").join("Scripts").join("pip.exe")
+        execute_package_command(package_manager, &PathBuf::from(&info.project_path), package_name);
     } else {
-        // unix
-        current_dir.join("venv").join("bin").join("pip")
-    };
-
-    // Install the package using pip from the venv
-    let status = Command::new(pip_path)
-        .args(&["install", package_name])
-        .status()
-        .expect("Failed to install package");
-
-    if status.success() {
-        println!("Package '{}' added successfully.", package_name);
-    } else {
-        eprintln!("Failed to add package '{}'.", package_name);
+        println!("Current directory is not a recognized UPM project.");
     }
+}
+
+fn execute_package_command(package_manager: PackageManager, current_dir: &PathBuf, package_name: &str) {
+    match package_manager {
+        PackageManager::Pip => {
+            let requirements_path = current_dir.join("requirements.txt");
+            let mut file = fs::OpenOptions::new()
+                .write(true)
+                .append(true)
+                .open(&requirements_path)
+                .expect("Failed to open requirements.txt");
+            writeln!(file, "{}", package_name).expect("Failed to write to requirements.txt");
+
+            let pip_path = if cfg!(target_os = "windows") {
+                current_dir.join("venv").join("Scripts").join("pip.exe")
+            } else {
+                current_dir.join("venv").join("bin").join("pip")
+            };
+
+            let status = Command::new(pip_path)
+                .args(&["install", package_name])
+                .status()
+                .expect("Failed to install package");
+            if !status.success() {
+                eprintln!("Failed to add package '{}'.", package_name);
+            }
+        },
+        PackageManager::Cargo => {
+            let status = Command::new("cargo")
+                .args(&["add", package_name])
+                .current_dir(current_dir)
+                .status()
+                .expect("Failed to run cargo command");
+            if !status.success() {
+                eprintln!("Failed to add package '{}'.", package_name);
+            }
+        },
+        PackageManager::Npm => {
+            let status = Command::new("npm")
+                .args(&["install", "--save", package_name])
+                .current_dir(current_dir)
+                .status()
+                .expect("Failed to run npm command");
+            if !status.success() {
+                eprintln!("Failed to add package '{}'.", package_name);
+            }
+        },
+        PackageManager::Gem => {
+            let status = Command::new("gem")
+                .args(&["install", package_name])
+                .current_dir(current_dir)
+                .status()
+                .expect("Failed to run gem command");
+            if !status.success() {
+                eprintln!("Failed to add package '{}'.", package_name);
+            }
+        },
+        PackageManager::Other(cmd) => {
+            let status = Command::new(cmd)
+                .arg(package_name)
+                .current_dir(current_dir)
+                .status()
+                .expect("Failed to run package manager command");
+            if !status.success() {
+                eprintln!("Failed to add package '{}'.", package_name);
+            }
+        },
+    }
+
+    println!("Package '{}' added successfully.", package_name);
 }
 
 fn set_main_path(main_path: &str) {
