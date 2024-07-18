@@ -18,25 +18,6 @@ enum PackageManager {
     Other(String), // For package managers that are just a single command
 }
 
-
-
-#[cfg(windows)]
-const DB_PATH: &str = "J:\\ultimate_project_manager\\upm_projects.json"; // Adjust the path as necessary
-
-#[cfg(unix)]
-const DB_PATH: &str = "/Users/james/WinDesktop/ultimate_project_manager/upm_projects.json"; 
-
-
-enum PackageManager {
-    Pip,
-    Cargo,
-    Npm,
-    Gem,
-    Other(String), // For package managers that are just a single command
-}
-
-
-
 #[cfg(windows)]
 const DB_PATH: &str = "J:\\ultimate_project_manager\\upm_projects.json"; // Adjust the path as necessary
 
@@ -47,12 +28,12 @@ const DB_PATH: &str = "/Users/james/WinDesktop/ultimate_project_manager/upm_proj
 use project_init::{ProjectsDb, ProjectInfo, create_project, clean_path, add_project_to_db, save_projects_db};
 
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 struct Config {
     default_flags: DefaultFlags,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Serialize)]
 struct DefaultFlags {
     git: bool,
     ignore: bool,
@@ -171,10 +152,55 @@ fn main() {
             if modifier == "main" {
                 set_main_path(argument);
             }
+            if modifier == "defaults" {
+                println!("ahoy");
+                set_defaults(argument);
+            }
         },
         _ => {}
     }
 }
+
+fn set_defaults(argument: &str) {
+    println!("Setting defaults for '{}'", argument); // Debug print statement
+
+    // Read the current configuration from upmconfig.toml
+    let config_path = Path::new("J:\\ultimate_project_manager\\upmconfig.toml"); // Adjust as necessary
+    let mut config: Config = match fs::read_to_string(config_path) {
+        Ok(contents) => toml::from_str(&contents).expect("Failed to parse config file"),
+        Err(e) => {
+            eprintln!("Failed to read config file: {}", e);
+            return;
+        }
+    };
+
+    // Determine which flag to toggle
+    match argument {
+        "git" => {
+            config.default_flags.git = !config.default_flags.git;
+            println!("git default flag updated to {}", config.default_flags.git);
+        },
+        "ignore" => {
+            config.default_flags.ignore = !config.default_flags.ignore;
+            println!("ignore default flag updated to {}", config.default_flags.ignore);
+        },
+        _ => {
+            println!("Unsupported argument '{}'. Use 'git' or 'ignore'.", argument);
+            return;
+        }
+    }
+
+    // Save the updated configuration back to the file
+    let toml_str = toml::to_string_pretty(&config).expect("Failed to serialize to TOML");
+    if let Err(e) = fs::write(config_path, toml_str) {
+        eprintln!("Failed to write to config file: {}", e);
+        return;
+    }
+    
+    println!("Defaults updated successfully."); // Debug print statement
+}
+
+
 fn init_project(project_language: Option<&str>, project_main: Option<&str>) {
     let current_dir = env::current_dir().unwrap();
     let current_dir_str = clean_path(&current_dir);
