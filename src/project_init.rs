@@ -64,7 +64,8 @@ pub fn clean_path(path: &Path) -> String {
 }
 
 pub fn create_project(project_name: &str, project_language: &str, git: bool, ignore: bool) {
-    match project_language {
+    let lowercase = project_language.to_lowercase();
+    match lowercase.as_str() {
         "python" => create_python_project(project_name, git, ignore),
         "cpp" => create_cpp_project(project_name, git, ignore),
         "c++" => create_cpp_project(project_name, git, ignore),

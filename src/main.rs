@@ -121,6 +121,14 @@ fn main() {
                     .required(true)
                     .index(2))
         )
+        .subcommand(
+            ClapCommand::new("help")
+                .about("Prints help information")
+                .arg(Arg::new("SUBCOMMAND")
+                    .help("The subcommand to get help for")
+                    .required(false)
+                    .index(1))
+        )
         .get_matches();
 
     match matches.subcommand() {
@@ -162,7 +170,7 @@ fn main() {
 }
 
 fn set_defaults(argument: &str) {
-    println!("Setting defaults for '{}'", argument); // Debug print statement
+    println!("Setting defaults for '{}'", argument);
 
     // Read the current configuration from upmconfig.toml
     let config_path = Path::new("J:\\ultimate_project_manager\\upmconfig.toml"); // Adjust as necessary
@@ -197,7 +205,7 @@ fn set_defaults(argument: &str) {
         return;
     }
     
-    println!("Defaults updated successfully."); // Debug print statement
+    println!("Defaults updated successfully.");
 }
 
 
