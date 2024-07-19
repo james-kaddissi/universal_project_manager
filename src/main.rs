@@ -129,6 +129,18 @@ fn main() {
                     .required(false)
                     .index(1))
         )
+        .subcommand(
+            ClapCommand::new("template")
+                .about("Contains subcommands for managing templates")
+                .arg(Arg::new("ACTION")
+                    .help("The action to perform on the template")
+                    .required(true)
+                    .index(1))
+                .arg(Arg::new("TEMPLATE_NAME")
+                    .help("The name of the template")
+                    .required(true)
+                    .index(2))
+        )
         .get_matches();
 
     match matches.subcommand() {
@@ -165,8 +177,72 @@ fn main() {
                 set_defaults(argument);
             }
         },
+        Some(("template", sub_m)) => {
+            let action = sub_m.get_one::<String>("ACTION").unwrap();
+            let template_name = sub_m.get_one::<String>("TEMPLATE_NAME").unwrap();
+            template_manager(action, template_name);
+        }
         _ => {}
     }
+}
+
+fn template_manager(action: &str, template_name: &str) {
+    match action {
+        "save" => {
+            // Get current directory path
+            let current_dir = match env::current_dir() {
+                Ok(path) => path,
+                Err(err) => {
+                    eprintln!("Failed to get current directory: {}", err);
+                    return;
+                }
+            };
+
+            // Create a templates directory if it doesn't exist
+            let templates_dir = Path::new("J:\\ultimate_project_manager\\templates");
+            if !templates_dir.exists() {
+                if let Err(err) = fs::create_dir_all(&templates_dir) {
+                    eprintln!("Failed to create templates directory: {}", err);
+                    return;
+                }
+            }
+
+            // Create a new directory for the template
+            let template_path = templates_dir.join(template_name);
+            if let Err(err) = fs::create_dir(&template_path) {
+                eprintln!("Failed to create template directory: {}", err);
+                return;
+            }
+
+            // Copy all contents from current directory to template directory recursively
+            if let Err(err) = copy_dir_contents(&current_dir, &template_path) {
+                eprintln!("Failed to copy directory contents: {}", err);
+                return;
+            }
+
+            println!("Saved current directory as template '{}'", template_name);
+
+        },
+        _ => {println!("Unsupported action '{}'.", action);}
+    }
+}
+fn copy_dir_contents(src: &Path, dst: &Path) -> io::Result<()> {
+    for entry in fs::read_dir(src)? {
+        let entry = entry?;
+        let file_type = entry.file_type()?;
+        let src_path = entry.path();
+        let file_name = src_path.file_name().ok_or(io::Error::new(io::ErrorKind::Other, "Invalid file name"))?;
+
+        let dst_path = dst.join(file_name);
+
+        if file_type.is_dir() {
+            fs::create_dir_all(&dst_path)?;
+            copy_dir_contents(&src_path, &dst_path)?;
+        } else {
+            fs::copy(&src_path, &dst_path)?;
+        }
+    }
+    Ok(())
 }
 
 fn set_defaults(argument: &str) {
