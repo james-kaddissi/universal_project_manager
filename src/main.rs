@@ -301,6 +301,20 @@ fn template_manager(action: &str, template_name: &str, project_name: Option<&str
             init_project(Some(&project_language), Some(&project_main));
             println!("Created project '{}' from template '{}'", project_name, template_name);
 
+        },
+        "delete" => {
+            let templates_dir = Path::new("J:\\ultimate_project_manager\\templates"); 
+            let template_path = templates_dir.join(template_name);
+
+            if template_path.exists() {
+                if let Err(err) = fs::remove_dir_all(&template_path) {
+                    eprintln!("Failed to delete template '{}': {}", template_name, err);
+                } else {
+                    println!("Template '{}' deleted successfully.", template_name);
+                }
+            } else {
+                eprintln!("Template '{}' not found.", template_name);
+            }
         }
         _ => {println!("Unsupported action '{}'.", action);}
     }
