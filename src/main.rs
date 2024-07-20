@@ -283,17 +283,17 @@ fn template_manager(action: &str, template_name: &str, project_name: Option<&str
             };
             
 
-            // Copy the template directory into the current directory
-            if let Err(err) = fs::copy(&templates_dir, &dest_path) {
+            if let Err(err) = fs::create_dir(&dest_path) {
+                eprintln!("Failed to create project directory: {}", err);
+                return;
+            }
+            
+            // Copy the template directory contents into the newly created project directory
+            if let Err(err) = copy_dir_contents(&templates_dir, &dest_path) {
                 eprintln!("Failed to copy template directory: {}", err);
                 return;
             }
 
-            // Rename the copied template directory to the project name
-            if let Err(err) = fs::rename(&dest_path.join(template_name), &dest_path) {
-                eprintln!("Failed to rename template directory: {}", err);
-                return;
-            }
             if let Err(err) = env::set_current_dir(&dest_path) {
                 eprintln!("Failed to navigate into project directory: {}", err);
                 return;
