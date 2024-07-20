@@ -138,7 +138,7 @@ fn main() {
                     .index(1))
                 .arg(Arg::new("TEMPLATE_NAME")
                     .help("The name of the template")
-                    .required(true)
+                    .required(false)
                     .index(2))
                 .arg(Arg::new("PROJECT_NAME")
                     .help("The name of the project")
@@ -191,11 +191,14 @@ fn main() {
         },
         Some(("template", sub_m)) => {
             let action = sub_m.get_one::<String>("ACTION").unwrap();
-            let template_name = sub_m.get_one::<String>("TEMPLATE_NAME").unwrap();
+            let template_name = sub_m
+                .get_one::<String>("TEMPLATE_NAME")
+                .map(String::to_string)
+                .unwrap_or_default();
             let project_name = sub_m.get_one::<String>("PROJECT_NAME");
             let project_language = sub_m.get_one::<String>("LANGUAGE");
             let project_main = sub_m.get_one::<String>("MAIN");
-            template_manager(action, template_name, project_name.map(String::as_str), project_language.map(String::as_str), project_main.map(String::as_str));
+            template_manager(action, &template_name, project_name.map(String::as_str), project_language.map(String::as_str), project_main.map(String::as_str));
         }
         _ => {}
     }
@@ -315,7 +318,29 @@ fn template_manager(action: &str, template_name: &str, project_name: Option<&str
             } else {
                 eprintln!("Template '{}' not found.", template_name);
             }
-        }
+        },
+        "list" => {
+            let templates_dir = Path::new("J:\\ultimate_project_manager\\templates");
+            if !templates_dir.exists() {
+                eprintln!("No templates found.");
+                return;
+            }
+
+            let entries = match fs::read_dir(templates_dir) {
+                Ok(entries) => entries,
+                Err(err) => {
+                    eprintln!("Failed to read templates directory: {}", err);
+                    return;
+                }
+            };
+
+            for entry in entries {
+                if let Ok(entry) = entry {
+                    let template_name = entry.file_name();
+                    println!("{}", template_name.to_string_lossy());
+                }
+            }
+        },
         _ => {println!("Unsupported action '{}'.", action);}
     }
 }
