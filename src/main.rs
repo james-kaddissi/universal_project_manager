@@ -140,6 +140,18 @@ fn main() {
                     .help("The name of the template")
                     .required(true)
                     .index(2))
+                .arg(Arg::new("PROJECT_NAME")
+                    .help("The name of the project")
+                    .required(false)
+                    .index(3))
+                .arg(Arg::new("LANGUAGE")
+                    .help("Specifies the language of the project")
+                    .required(false)
+                    .index(4))
+                .arg(Arg::new("MAIN")
+                    .help("Specifies the main entry point of the project")
+                    .required(false)
+                    .index(5))
         )
         .get_matches();
 
@@ -180,13 +192,16 @@ fn main() {
         Some(("template", sub_m)) => {
             let action = sub_m.get_one::<String>("ACTION").unwrap();
             let template_name = sub_m.get_one::<String>("TEMPLATE_NAME").unwrap();
-            template_manager(action, template_name);
+            let project_name = sub_m.get_one::<String>("PROJECT_NAME");
+            let project_language = sub_m.get_one::<String>("LANGUAGE");
+            let project_main = sub_m.get_one::<String>("MAIN");
+            template_manager(action, template_name, project_name.map(String::as_str), project_language.map(String::as_str), project_main.map(String::as_str));
         }
         _ => {}
     }
 }
 
-fn template_manager(action: &str, template_name: &str) {
+fn template_manager(action: &str, template_name: &str, project_name: Option<&str>, project_language: Option<&str>, project_main: Option<&str>) {
     match action {
         "save" => {
             // Get current directory path
@@ -223,6 +238,70 @@ fn template_manager(action: &str, template_name: &str) {
             println!("Saved current directory as template '{}'", template_name);
 
         },
+        "create" => {
+            // Check if the project directory already exists
+            
+
+            // Define the path to the templates directory and the specific template
+            let templates_dir = Path::new("J:\\ultimate_project_manager\\templates\\").join(template_name);
+
+            if !templates_dir.exists() {
+                eprintln!("Template '{}' does not exist.", template_name);
+                return;
+            }
+            let project_name = match project_name {
+                Some(name) => name.to_string(),
+                None => {
+                    let mut input = String::new();
+                    println!("Enter the project name: ");
+                    io::stdin().read_line(&mut input).expect("Failed to read line");
+                    input.trim().to_string()
+                },
+            };
+            let dest_path = env::current_dir().unwrap().join(&project_name);
+            if dest_path.exists() {
+                eprintln!("Destination directory '{}' already exists.", dest_path.display());
+                return;
+            }
+            let project_language = match project_language {
+                Some(lang) => lang.to_string(),
+                None => {
+                    let mut input = String::new();
+                    println!("Enter the project language (e.g., python, rust, cpp):");
+                    io::stdin().read_line(&mut input).expect("Failed to read line");
+                    input.trim().to_string()
+                },
+            };
+            let project_main = match project_main {
+                Some(main) => main.to_string(),
+                None => {
+                    let mut input = String::new();
+                    println!("Enter the projects main entry point (e.g., src/main.py, src/main.rs):");
+                    io::stdin().read_line(&mut input).expect("Failed to read line");
+                    input.trim().to_string()
+                },
+            };
+            
+
+            // Copy the template directory into the current directory
+            if let Err(err) = fs::copy(&templates_dir, &dest_path) {
+                eprintln!("Failed to copy template directory: {}", err);
+                return;
+            }
+
+            // Rename the copied template directory to the project name
+            if let Err(err) = fs::rename(&dest_path.join(template_name), &dest_path) {
+                eprintln!("Failed to rename template directory: {}", err);
+                return;
+            }
+            if let Err(err) = env::set_current_dir(&dest_path) {
+                eprintln!("Failed to navigate into project directory: {}", err);
+                return;
+            }
+            init_project(Some(&project_language), Some(&project_main));
+            println!("Created project '{}' from template '{}'", project_name, template_name);
+
+        }
         _ => {println!("Unsupported action '{}'.", action);}
     }
 }
