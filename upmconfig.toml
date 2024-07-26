@@ -1,3 +1,9 @@
 [default_flags]
 git = false
 ignore = false
+venv = false
+license = false
+readme = false
+tests = false
+docs = false
+docker = false
