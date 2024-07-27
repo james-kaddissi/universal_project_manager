@@ -7,3 +7,6 @@ readme = false
 tests = false
 docs = false
 docker = false
+
+[preferences]
+editor = "vscode"

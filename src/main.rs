@@ -7,6 +7,7 @@ use std::process::Command;
 use serde::{Serialize, Deserialize};
 use std::path::{Path, PathBuf};
 use std::io;
+use regex::Regex;
 
 pub mod project_init;
 
@@ -31,12 +32,24 @@ use project_init::{ProjectsDb, ProjectInfo, create_project, clean_path, add_proj
 #[derive(Deserialize, Serialize)]
 struct Config {
     default_flags: DefaultFlags,
+    preferences: Preferences,
 }
 
 #[derive(Deserialize, Serialize)]
 struct DefaultFlags {
     git: bool,
     ignore: bool,
+    venv: bool,
+    license: bool,
+    readme: bool,
+    tests: bool,
+    docs: bool,
+    docker: bool
+}
+
+#[derive(Deserialize, Serialize)]
+struct Preferences {
+    editor: String,
 }
 
 
@@ -153,6 +166,14 @@ fn main() {
                     .required(false)
                     .index(5))
         )
+        .subcommand(
+            ClapCommand::new("list")
+                .about("Lists details about UPM.")
+                .arg(Arg::new("ARGUMENT")
+                    .help("The argument to view. Try 'editors' or 'templates'.")
+                    .required(true)
+                    .index(1))
+        )
         .get_matches();
 
     match matches.subcommand() {
@@ -185,8 +206,10 @@ fn main() {
                 set_main_path(argument);
             }
             if modifier == "defaults" {
-                println!("ahoy");
                 set_defaults(argument);
+            }
+            if modifier == "editor" {
+                set_editor(argument);
             }
         },
         Some(("template", sub_m)) => {
@@ -200,7 +223,50 @@ fn main() {
             let project_main = sub_m.get_one::<String>("MAIN");
             template_manager(action, &template_name, project_name.map(String::as_str), project_language.map(String::as_str), project_main.map(String::as_str));
         }
+        Some(("list", sub_m)) => {
+            let argument = sub_m.get_one::<String>("ARGUMENT").unwrap();
+            list_manager(argument);
+        },
         _ => {}
+    }
+}
+
+fn list_manager(argument: &str) {
+    match argument {
+        "editors" => {
+            println!("Supported editors:");
+            println!("1. VS Code");
+            println!("2. Vim");
+            println!("3. Eclipse");
+            println!("4. Sublime Text");
+            println!("5. Atom");
+            println!("6. Notepad");
+            println!("7. Notepad++");
+            println!("8. GS-Edit");
+        },
+        "templates" => {
+            let templates_dir = Path::new("J:\\ultimate_project_manager\\templates");
+            if !templates_dir.exists() {
+                eprintln!("No templates found.");
+                return;
+            }
+
+            let entries = match fs::read_dir(templates_dir) {
+                Ok(entries) => entries,
+                Err(err) => {
+                    eprintln!("Failed to read templates directory: {}", err);
+                    return;
+                }
+            };
+
+            for entry in entries {
+                if let Ok(entry) = entry {
+                    let template_name = entry.file_name();
+                    println!("{}", template_name.to_string_lossy());
+                }
+            }
+        },
+        _ => {println!("Unsupported argument '{}'.", argument);}
     }
 }
 
@@ -361,6 +427,67 @@ fn copy_dir_contents(src: &Path, dst: &Path) -> io::Result<()> {
         }
     }
     Ok(())
+}
+
+fn set_editor(argument: &str) {
+    // Read the current configuration from upmconfig.toml
+    let config_path = Path::new("J:\\ultimate_project_manager\\upmconfig.toml"); // Adjust as necessary
+    let mut config: Config = match fs::read_to_string(config_path) {
+        Ok(contents) => toml::from_str(&contents).expect("Failed to parse config file"),
+        Err(e) => {
+            eprintln!("Failed to read config file: {}", e);
+            return;
+        }
+    };
+    let vscode_pattern = Regex::new(r#"(?i)vs\s*code|visual\s*studio\s*code|visual[-\s]*"#).unwrap();
+    let vim_pattern = Regex::new(r#"(?i)vim"#).unwrap();
+    let eclipse_pattern = Regex::new(r#"(?i)eclipse"#).unwrap();
+    let sublime_pattern = Regex::new(r#"(?i)sublime"#).unwrap();
+    let atom_pattern = Regex::new(r#"(?i)atom"#).unwrap();
+    let notepad_pattern = Regex::new(r#"(?i)notepad"#).unwrap();
+    let notepadpp_pattern = Regex::new(r#"(?i)notepad\+\+"#).unwrap();
+    let gsedit_pattern = Regex::new(r#"(?i)gs\s*edit"#).unwrap();
+    
+    // Match input against regex patterns
+    if vscode_pattern.is_match(argument) {
+        config.preferences.editor = "vscode".to_string();
+        println!("Default editor updated to VS Code");
+    } else if vim_pattern.is_match(argument) {
+        config.preferences.editor = "vim".to_string();
+        println!("Default editor updated to Vim");
+    } else if eclipse_pattern.is_match(argument) {
+        config.preferences.editor = "eclipse".to_string();
+        println!("Default editor updated to Eclipse");
+    } else if sublime_pattern.is_match(argument) {
+        config.preferences.editor = "sublime".to_string();
+        println!("Default editor updated to Sublime Text");
+    } else if atom_pattern.is_match(argument) {
+        config.preferences.editor = "atom".to_string();
+        println!("Default editor updated to Atom");
+    } else if notepadpp_pattern.is_match(argument) {
+        config.preferences.editor = "notepad++".to_string();
+        println!("Default editor updated to Notepad++");
+    } else if notepad_pattern.is_match(argument) {
+        config.preferences.editor = "notepad".to_string();
+        println!("Default editor updated to Notepad");
+    } else if gsedit_pattern.is_match(argument) {
+        config.preferences.editor = "gsedit".to_string();
+        println!("Default editor updated to GS-Edit");
+    }else {
+        // Default case: set editor to the provided argument with a warning
+        config.preferences.editor = argument.to_string();
+        println!("Default editor updated to {}. This editor is not natively recognized by UPM.", argument);
+        println!("Check for typos in your argument if you believe this is an error.");
+        println!("To view a list of supported editors, try 'upm list editors'.");
+    }
+    // Write to config file
+    let toml_str = toml::to_string_pretty(&config).expect("Failed to serialize to TOML");
+    if let Err(e) = fs::write(config_path, toml_str) {
+        eprintln!("Failed to write to config file: {}", e);
+        return;
+    }
+    
+    println!("Editor preference updated successfully.");
 }
 
 fn set_defaults(argument: &str) {
