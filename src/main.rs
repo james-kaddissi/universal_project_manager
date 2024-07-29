@@ -203,6 +203,14 @@ docker = false
                     .required(true)
                     .index(1))
         )
+        .subcommand(
+            ClapCommand::new("secrets")
+                .about("Manages secrets for the project")
+                .arg(Arg::new("ACTION")
+                    .help("The action to perform on the secrets")
+                    .required(true)
+                    .index(1))
+        )
         .get_matches();
 
     match matches.subcommand() {
@@ -261,6 +269,10 @@ docker = false
         Some(("list", sub_m)) => {
             let argument = sub_m.get_one::<String>("ARGUMENT").unwrap();
             list_manager(argument);
+        },
+        Some(("secrets", sub_m)) => {
+            let action = sub_m.get_one::<String>("ACTION").unwrap();
+            secrets_manager(action);
         },
         _ => {}
     }
