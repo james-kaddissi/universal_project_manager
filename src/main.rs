@@ -69,7 +69,12 @@ fn read_config_from(path: &Path) -> Config {
 fn main() {
     #[cfg(unix)]
     let config_path = Path::new("/Users/james/WinDesktop/ultimate_project_manager/upmconfig.toml"); // ADJUST PATH TO WHEREVER YOUR ROOT AND toml IS LOCATED
-    
+    venv = false
+license = false
+readme = false
+tests = false
+docs = false
+docker = false
     #[cfg(windows)]
     let config_path = Path::new("J:\\ultimate_project_manager\\upmconfig.toml"); // ADJUST PATH TO WHEREVER YOUR ROOT AND toml IS LOCATED
     
@@ -97,6 +102,30 @@ fn main() {
                     .help("Initializes a .gitignore")
                     .action(clap::ArgAction::SetTrue)
                     .requires("git")) // Makes "ignore" require "git"
+                .arg(Arg::new("venv")
+                    .long("venv")
+                    .help("Initializes a venv")
+                    .action(clap::ArgAction::SetTrue))
+                .arg(Arg::new("license")
+                    .long("license")
+                    .help("Initializes a license. Uses default license if no argument is provided.")
+                    .action(clap::ArgAction::SetTrue)
+                .arg(Arg::new("readme")
+                    .long("readme")
+                    .help("Initializes a readme. Uses default readme.")
+                    .action(clap::ArgAction::SetTrue))
+                .arg(Arg::new("tests")
+                    .long("tests")
+                    .help("Initializes a tests directory.")
+                    .action(clap::ArgAction::SetTrue))
+                .arg(Arg::new("docs")
+                    .long("docs")
+                    .help("Initializes a docs directory.")
+                    .action(clap::ArgAction::SetTrue))
+                .arg(Arg::new("docker")
+                    .long("docker")
+                    .help("Initializes the project with docker")
+                    .action(clap::ArgAction::SetTrue))
         )
         .subcommand(
             ClapCommand::new("add")
@@ -183,8 +212,14 @@ fn main() {
         
             let git = sub_m.contains_id("git") || config.default_flags.git;
             let ignore = sub_m.contains_id("ignore") || (config.default_flags.ignore && git);
+            let venv = sub_m.contains_id("venv") || config.default_flags.venv;
+            let license = sub_m.contains_id("license") || config.default_flags.license;
+            let readme = sub_m.contains_id("readme") || config.default_flags.readme;
+            let tests = sub_m.contains_id("tests") || config.default_flags.tests;
+            let docs = sub_m.contains_id("docs") || config.default_flags.docs;
+            let docker = sub_m.contains_id("docker") || config.default_flags.docker;
         
-            create_project(project_name, project_language, git, ignore);
+            create_project(project_name, project_language, git, ignore, venv, license, readme, tests, docs, docker);
         },
         Some(("add", sub_m)) => {
             let package_name = sub_m.get_one::<String>("PACKAGE_NAME").unwrap();

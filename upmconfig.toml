@@ -1,7 +1,7 @@
 [default_flags]
 git = false
 ignore = false
-venv = false
+venv = true
 license = false
 readme = false
 tests = false
@@ -10,3 +10,5 @@ docker = false
 
 [preferences]
 editor = "vscode"
+license = "mit"
+open_editor_on_create = true

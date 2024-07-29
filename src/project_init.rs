@@ -9,6 +9,7 @@ use std::collections::HashMap;
 #[cfg(windows)]
 const DB_PATH: &str = "J:\\ultimate_project_manager\\upm_projects.json"; // Adjust the path as necessary
 // obviously these paths will only work on my machine. If you have only one machine you work on windows or unix, then you only need that one (or just leave both the other OS code will be ignored), then change the path to wherever this project is located
+// ill fix this logic later to something more stable and practical to fulfill the idea of 'universal'
 #[cfg(unix)]
 const DB_PATH: &str = "/Users/james/WinDesktop/ultimate_project_manager/upm_projects.json"; 
 
@@ -63,22 +64,22 @@ pub fn clean_path(path: &Path) -> String {
     path_str
 }
 
-pub fn create_project(project_name: &str, project_language: &str, git: bool, ignore: bool) {
+pub fn create_project(project_name: &str, project_language: &str, git: bool, ignore: bool, venv: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     let lowercase = project_language.to_lowercase();
     match lowercase.as_str() {
-        "python" => create_python_project(project_name, git, ignore),
-        "cpp" => create_cpp_project(project_name, git, ignore),
-        "c++" => create_cpp_project(project_name, git, ignore),
-        "c" => create_c_project(project_name, git, ignore),
-        "rust" => create_rust_project(project_name, git, ignore),
-        "rs" => create_rust_project(project_name, git, ignore),
-        "html" => create_html_project(project_name, git, ignore),
-        "react" => create_react_project(project_name, git, ignore),
-        "java" => create_java_project(project_name, git, ignore),
-        "javascript" => create_javascript_project(project_name, git, ignore),
-        "ruby" => create_ruby_project(project_name, git, ignore),
-        "cs" => create_cs_project(project_name, git, ignore),
-        "c#" => create_cs_project(project_name, git, ignore),
+        "python" => create_python_project(project_name, git, ignore, venv, license, readme, tests, docs, docker),
+        "cpp" => create_cpp_project(project_name, git, ignore, venv, license, readme, tests, docs, docker),
+        "c++" => create_cpp_project(project_name, git, ignore, venv, license, readme, tests, docs, docker),
+        "c" => create_c_project(project_name, git, ignore, venv, license, readme, tests, docs, docker),
+        "rust" => create_rust_project(project_name, git, ignore, venv, license, readme, tests, docs, docker),
+        "rs" => create_rust_project(project_name, git, ignore, venv, license, readme, tests, docs, docker),
+        "html" => create_html_project(project_name, git, ignore, venv, license, readme, tests, docs, docker),
+        "react" => create_react_project(project_name, git, ignore, venv, license, readme, tests, docs, docker),
+        "java" => create_java_project(project_name, git, ignore, venv, license, readme, tests, docs, docker),
+        "javascript" => create_javascript_project(project_name, git, ignore, venv, license, readme, tests, docs, docker),
+        "ruby" => create_ruby_project(project_name, git, ignore, venv, license, readme, tests, docs, docker),
+        "cs" => create_cs_project(project_name, git, ignore, venv, license, readme, tests, docs, docker),
+        "c#" => create_cs_project(project_name, git, ignore, venv, license, readme, tests, docs, docker),
         _ => println!("Unsupported project language."),
     }
 
@@ -100,7 +101,7 @@ pub fn create_project(project_name: &str, project_language: &str, git: bool, ign
     add_project_to_db(project_name, &project_path, project_language, project_main);
 }
 
-fn initialize_git(project_path: &Path, git: bool, ignore: bool) {
+fn initialize_git(project_path: &Path, git: bool, ignore: bool, venv: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     if git {
         Command::new("git")
             .args(&["init", project_path.to_str().unwrap()])
@@ -117,7 +118,7 @@ fn initialize_git(project_path: &Path, git: bool, ignore: bool) {
     }
 }
 
-fn create_cpp_project(project_name: &str, git: bool, ignore: bool) {
+fn create_cpp_project(project_name: &str, git: bool, ignore: bool, venv: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     println!("Initializing C++ project...");
     let root_path = Path::new(project_name);
     if root_path.exists() {
@@ -133,7 +134,7 @@ fn create_cpp_project(project_name: &str, git: bool, ignore: bool) {
     println!("Project {} created successfully.", project_name);
 }
 
-fn create_c_project(project_name: &str, git: bool, ignore: bool) {
+fn create_c_project(project_name: &str, git: bool, ignore: bool, venv: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     println!("Initializing C project...");
     let root_path = Path::new(project_name);
     if root_path.exists() {
@@ -149,7 +150,7 @@ fn create_c_project(project_name: &str, git: bool, ignore: bool) {
     println!("Project {} created successfully.", project_name);
 }
 
-fn create_rust_project(project_name: &str, git: bool, ignore: bool) {
+fn create_rust_project(project_name: &str, git: bool, ignore: bool, venv: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     println!("Initializing Rust project...");
     Command::new("cargo")
         .args(&["new", project_name, "--bin"])
@@ -165,7 +166,7 @@ fn create_rust_project(project_name: &str, git: bool, ignore: bool) {
     println!("Project {} created successfully.", project_name);
 }
 
-fn create_html_project(project_name: &str, git: bool, ignore: bool) {
+fn create_html_project(project_name: &str, git: bool, ignore: bool, venv: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     println!("Initializing HTML project...");
     let root_path = Path::new(project_name);
     if root_path.exists() {
@@ -185,7 +186,7 @@ fn create_html_project(project_name: &str, git: bool, ignore: bool) {
 
 
 
-fn create_react_project(project_name: &str, git: bool, ignore: bool) {
+fn create_react_project(project_name: &str, git: bool, ignore: bool, venv: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     println!("Initializing React project...");
     Command::new("npx")
         .args(&["create-react-app", project_name])
@@ -198,7 +199,7 @@ fn create_react_project(project_name: &str, git: bool, ignore: bool) {
     println!("Project {} created successfully.", project_name);
 }
 
-fn create_java_project(project_name: &str, git: bool, ignore: bool) {
+fn create_java_project(project_name: &str, git: bool, ignore: bool, venv: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     println!("Initializing Java project...");
     let root_path = Path::new(project_name);
     if root_path.exists() {
@@ -216,7 +217,7 @@ fn create_java_project(project_name: &str, git: bool, ignore: bool) {
     println!("Project {} created successfully.", project_name);
 }
 
-fn create_javascript_project(project_name: &str, git: bool, ignore: bool) {
+fn create_javascript_project(project_name: &str, git: bool, ignore: bool, venv: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     println!("Initializing JavaScript project...");
     let root_path = Path::new(project_name);
     if root_path.exists() {
@@ -239,7 +240,7 @@ fn create_javascript_project(project_name: &str, git: bool, ignore: bool) {
     println!("Project {} created successfully.", project_name);
 }
 
-fn create_ruby_project(project_name: &str, git: bool, ignore: bool) {
+fn create_ruby_project(project_name: &str, git: bool, ignore: bool, venv: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     println!("Initializing Ruby project...");
     let root_path = Path::new(project_name);
     if root_path.exists() {
@@ -256,7 +257,7 @@ fn create_ruby_project(project_name: &str, git: bool, ignore: bool) {
     println!("Project {} created successfully.", project_name);
 }
 
-fn create_cs_project(project_name: &str, git: bool, ignore: bool) {
+fn create_cs_project(project_name: &str, git: bool, ignore: bool, venv: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     println!("Initializing C# project...");
     Command::new("dotnet")
         .args(&["new", "console", "-n", project_name])
@@ -268,7 +269,7 @@ fn create_cs_project(project_name: &str, git: bool, ignore: bool) {
     println!("Project {} created successfully.", project_name);
 }
 
-fn create_python_project(project_name: &str, git: bool, ignore: bool) {
+fn create_python_project(project_name: &str, git: bool, ignore: bool, venv: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     println!("Initializing Python project...");
     let root_path = Path::new(project_name);
     if root_path.exists() {
