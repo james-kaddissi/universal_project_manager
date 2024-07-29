@@ -1,14 +1,12 @@
 use clap::{Arg, Command as ClapCommand };
-use std::fs;
 use std::collections::HashMap;
 use std::env;
-use std::io::Write;
 use std::process::Command;
 use serde::{Serialize, Deserialize};
 use std::path::{Path, PathBuf};
-use std::io;
 use regex::Regex;
-
+use std::fs::{self, OpenOptions};
+use std::io::{self, BufRead, BufReader, BufWriter, Write};
 pub mod project_init;
 
 enum PackageManager {
@@ -69,12 +67,7 @@ fn read_config_from(path: &Path) -> Config {
 fn main() {
     #[cfg(unix)]
     let config_path = Path::new("/Users/james/WinDesktop/ultimate_project_manager/upmconfig.toml"); // ADJUST PATH TO WHEREVER YOUR ROOT AND toml IS LOCATED
-    venv = false
-license = false
-readme = false
-tests = false
-docs = false
-docker = false
+
     #[cfg(windows)]
     let config_path = Path::new("J:\\ultimate_project_manager\\upmconfig.toml"); // ADJUST PATH TO WHEREVER YOUR ROOT AND toml IS LOCATED
     
@@ -109,7 +102,7 @@ docker = false
                 .arg(Arg::new("license")
                     .long("license")
                     .help("Initializes a license. Uses default license if no argument is provided.")
-                    .action(clap::ArgAction::SetTrue)
+                    .action(clap::ArgAction::SetTrue))
                 .arg(Arg::new("readme")
                     .long("readme")
                     .help("Initializes a readme. Uses default readme.")
@@ -210,6 +203,14 @@ docker = false
                     .help("The action to perform on the secrets")
                     .required(true)
                     .index(1))
+                .arg(Arg::new("SECRET")
+                    .help("The secret to act on")
+                    .required(true)
+                    .index(2))
+                .arg(Arg::new("SECRET_VALUE")
+                    .help("The secret value")
+                    .required(false)
+                    .index(3))
         )
         .get_matches();
 
@@ -272,9 +273,75 @@ docker = false
         },
         Some(("secrets", sub_m)) => {
             let action = sub_m.get_one::<String>("ACTION").unwrap();
-            secrets_manager(action);
+            let secret = sub_m.get_one::<String>("SECRET").unwrap();
+            let secret_value = sub_m.get_one::<String>("SECRET_VALUE").map(String::to_string).unwrap_or_default();
+
+            secrets_manager(action, secret, &secret_value);
         },
         _ => {}
+    }
+}
+
+fn load_secrets(file_path: &std::path::Path) -> std::collections::HashMap<String, String> {
+    let mut secrets_map = std::collections::HashMap::new();
+
+    if let Ok(file) = fs::File::open(file_path) {
+        let reader = BufReader::new(file);
+
+        for line in reader.lines() {
+            if let Ok(line) = line {
+                if let Some((key, value)) = parse_env_line(&line) {
+                    secrets_map.insert(key.to_string(), value.to_string());
+                }
+            }
+        }
+    }
+
+    secrets_map
+}
+
+fn save_secrets(file_path: &std::path::Path, secrets_map: &std::collections::HashMap<String, String>) {
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open(file_path)
+        .unwrap();
+
+    let mut writer = BufWriter::new(file);
+
+    for (key, value) in secrets_map {
+        writeln!(writer, "{}={}", key, value).expect("Failed to write to .env file");
+    }
+}
+
+fn parse_env_line(line: &str) -> Option<(&str, &str)> {
+    let parts: Vec<&str> = line.splitn(2, '=').collect();
+    if parts.len() == 2 {
+        Some((parts[0].trim(), parts[1].trim()))
+    } else {
+        None
+    }
+}
+
+fn secrets_manager(action: &str, secret: &str, secret_value: &str) {
+    if action == "save" || action == "add" {
+        let current_dir = env::current_dir().unwrap();
+        let current_dir_str = clean_path(&current_dir);
+        let db = load_projects_db();
+
+        if db.projects.iter().any(|(_key, value)| current_dir_str.starts_with(&value.project_path)) {
+            let current_dir = env::current_dir().unwrap();
+            let env_file_path = current_dir.join(".env");
+
+            let mut secrets_map = load_secrets(&env_file_path);
+
+            secrets_map.insert(secret.to_string(), secret_value.to_string());
+            save_secrets(&env_file_path, &secrets_map);
+        } else {
+            println!("This directory is not recognized as a UPM project.");
+            return;
+        }
     }
 }
 

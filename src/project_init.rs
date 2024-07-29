@@ -101,7 +101,7 @@ pub fn create_project(project_name: &str, project_language: &str, git: bool, ign
     add_project_to_db(project_name, &project_path, project_language, project_main);
 }
 
-fn initialize_git(project_path: &Path, git: bool, ignore: bool, venv: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
+fn initialize_git(project_path: &Path, git: bool, ignore: bool) {
     if git {
         Command::new("git")
             .args(&["init", project_path.to_str().unwrap()])
