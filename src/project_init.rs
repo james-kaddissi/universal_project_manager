@@ -60,6 +60,13 @@ fn initialize_tests(project_path: &Path) {
     println!("Initialized tests directory.");
 }
 
+fn initialize_license(project_path: &Path) {
+    let license_path = project_path.join("LICENSE");
+    let license_content = "MIT License";
+    fs::write(license_path, license_content).expect("Failed to create LICENSE file");
+    println!("Initialized LICENSE file.");
+}
+
 fn initialize_git(project_path: &Path, git: bool, ignore: bool) {
     if git {
         Command::new("git")

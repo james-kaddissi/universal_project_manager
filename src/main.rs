@@ -18,47 +18,10 @@ enum PackageManager {
     Other(String), // For package managers that are just a single command
 }
 
-#[cfg(windows)]
-const DB_PATH: &str = "J:\\ultimate_project_manager\\upm_projects.json"; // Adjust the path as necessary
-
-#[cfg(unix)]
-const DB_PATH: &str = "/Users/james/WinDesktop/ultimate_project_manager/upm_projects.json"; 
-
-
 use project_init::{create_project, clean_path, add_project_to_db, save_projects_db};
 use project_database::{load_projects_db};
 
-#[derive(Deserialize, Serialize)]
-struct Config {
-    default_flags: DefaultFlags,
-    preferences: Preferences,
-}
 
-#[derive(Deserialize, Serialize)]
-struct DefaultFlags {
-    git: bool,
-    ignore: bool,
-    venv: bool,
-    license: bool,
-    readme: bool,
-    tests: bool,
-    docs: bool,
-    docker: bool
-}
-
-#[derive(Deserialize, Serialize)]
-struct Preferences {
-    editor: String,
-    license: String,
-    open_editor_on_create: bool
-}
-
-
-fn read_config_from(path: &Path) -> Config {
-    let config_str = fs::read_to_string(path)
-        .expect("Failed to read config file");
-    toml::from_str(&config_str).expect("Failed to process config file")
-}
 
 fn main() {
     #[cfg(unix)]
