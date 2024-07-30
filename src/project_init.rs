@@ -6,63 +6,8 @@ use std::io::{Read, Write};
 use serde_json;
 use std::collections::HashMap;
 
-#[cfg(windows)]
-const DB_PATH: &str = "J:\\ultimate_project_manager\\upm_projects.json"; // Adjust the path as necessary
-// obviously these paths will only work on my machine. If you have only one machine you work on windows or unix, then you only need that one (or just leave both the other OS code will be ignored), then change the path to wherever this project is located
-// ill fix this logic later to something more stable and practical to fulfill the idea of 'universal'
-#[cfg(unix)]
-const DB_PATH: &str = "/Users/james/WinDesktop/ultimate_project_manager/upm_projects.json"; 
-
-#[derive(Serialize, Deserialize)]
-pub struct ProjectsDb {
-    pub projects: HashMap<String, ProjectInfo>,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct ProjectInfo {
-    pub project_path: String,
-    pub project_language: String,
-    pub project_main: String,
-}
-
-fn load_projects_db() -> ProjectsDb {
-    let db_path = Path::new(DB_PATH);
-    if !db_path.exists() {
-        return ProjectsDb { projects: HashMap::new() };
-    }
-
-    let mut file = fs::File::open(db_path).expect("Failed to open projects database");
-    let mut contents = String::new();
-    file.read_to_string(&mut contents).expect("Failed to read projects database");
-    serde_json::from_str(&contents).unwrap_or_else(|_| ProjectsDb { projects: HashMap::new() })
-}
-
-pub fn save_projects_db(db: &ProjectsDb) {
-    let db_path = Path::new(DB_PATH);
-    let contents = serde_json::to_string(db).expect("Failed to serialize projects database");
-    let mut file = OpenOptions::new().write(true).create(true).truncate(true).open(db_path).expect("Failed to open projects database for writing");
-    file.write_all(contents.as_bytes()).expect("Failed to write projects database");
-}
-
-pub fn add_project_to_db(project_name: &str, project_path: &str, project_language: &str, project_main: &str) {
-    let mut db = load_projects_db();
-    
-    db.projects.insert(project_name.to_string(), ProjectInfo {
-        project_path: project_path.to_string(),
-        project_language: project_language.to_string(),
-        project_main: project_main.to_string(), // Use the provided path
-    });
-    
-    save_projects_db(&db);
-}
-
-pub fn clean_path(path: &Path) -> String {
-    let mut path_str = path.to_string_lossy().into_owned();
-    if cfg!(windows) {
-        path_str = path_str.trim_start_matches("\\\\?\\").to_string();
-    }
-    path_str
-}
+use project_database::{ProjectsDb, ProjectInfo, load_projects_db, save_projects_db, add_project_to_db};
+use util::{clean_path};
 
 pub fn create_project(project_name: &str, project_language: &str, git: bool, ignore: bool, venv: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     let lowercase = project_language.to_lowercase();
@@ -99,6 +44,20 @@ pub fn create_project(project_name: &str, project_language: &str, git: bool, ign
 
     let project_path = clean_path(&Path::new(project_name).canonicalize().expect("Failed to get absolute path"));
     add_project_to_db(project_name, &project_path, project_language, project_main);
+}
+
+fn initialize_docs(project_path: &Path) {
+    let docs_path = project_path.join("docs");
+    fs::create_dir_all(&docs_path).expect("Failed to create docs directory");
+    let mut index_md = fs::File::create(docs_path.join("index.md")).expect("Failed to create index.md");
+    writeln!(index_md, "# Documentation\n\nThis is the documentation for the project.").expect("Failed to write to index.md");
+    println!("Initialized docs directory.");
+}
+
+fn initialize_tests(project_path: &Path) {
+    let tests_path = project_path.join("tests");
+    fs::create_dir_all(&tests_path).expect("Failed to create tests directory");
+    println!("Initialized tests directory.");
 }
 
 fn initialize_git(project_path: &Path, git: bool, ignore: bool) {
@@ -298,12 +257,14 @@ fn create_python_project(project_name: &str, git: bool, ignore: bool, venv: bool
         fs::write(gitignore_path, gitignore_content).expect("Failed to create .gitignore");
         println!("Created .gitignore");
     }
-
-    println!("CREATING PYTHON VENV");
-    create_virtual_env(project_name);
+    if venv {
+        println!("CREATING PYTHON VENV");
+        create_virtual_env(project_name);
+    }
 
     println!("Project {} created successfully.", project_name);
 }
+
 fn create_virtual_env(project_path: &str) {
     Command::new("python3")
         .args(&["-m", "venv", "venv"])

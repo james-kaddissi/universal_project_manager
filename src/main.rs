@@ -1,5 +1,4 @@
 use clap::{Arg, Command as ClapCommand };
-use std::collections::HashMap;
 use std::env;
 use std::process::Command;
 use serde::{Serialize, Deserialize};
@@ -8,6 +7,8 @@ use regex::Regex;
 use std::fs::{self, OpenOptions};
 use std::io::{self, BufRead, BufReader, BufWriter, Write};
 pub mod project_init;
+pub mod project_database;
+pub mod util;
 
 enum PackageManager {
     Pip,
@@ -24,8 +25,8 @@ const DB_PATH: &str = "J:\\ultimate_project_manager\\upm_projects.json"; // Adju
 const DB_PATH: &str = "/Users/james/WinDesktop/ultimate_project_manager/upm_projects.json"; 
 
 
-use project_init::{ProjectsDb, ProjectInfo, create_project, clean_path, add_project_to_db, save_projects_db};
-
+use project_init::{create_project, clean_path, add_project_to_db, save_projects_db};
+use project_database::{load_projects_db};
 
 #[derive(Deserialize, Serialize)]
 struct Config {
@@ -48,15 +49,10 @@ struct DefaultFlags {
 #[derive(Deserialize, Serialize)]
 struct Preferences {
     editor: String,
+    license: String,
+    open_editor_on_create: bool
 }
 
-
-fn load_projects_db() -> ProjectsDb {
-    let db_path = Path::new(DB_PATH); // ADJUST PATH TO WHEREVER YOUR ROOT AND JSON IS LOCATED
-    let contents = fs::read_to_string(db_path)
-        .expect("Failed to read projects database");
-    serde_json::from_str(&contents).expect("Failed to deserialize projects database")
-}
 
 fn read_config_from(path: &Path) -> Config {
     let config_str = fs::read_to_string(path)
