@@ -1,7 +1,6 @@
 use clap::{Arg, Command as ClapCommand };
 use std::env;
 use std::process::Command;
-use serde::{Serialize, Deserialize};
 use std::path::{Path, PathBuf};
 use regex::Regex;
 use std::fs::{self, OpenOptions};
@@ -9,6 +8,7 @@ use std::io::{self, BufRead, BufReader, BufWriter, Write};
 pub mod project_init;
 pub mod project_database;
 pub mod util;
+pub mod config;
 
 enum PackageManager {
     Pip,
@@ -18,19 +18,14 @@ enum PackageManager {
     Other(String), // For package managers that are just a single command
 }
 
-use project_init::{create_project, clean_path, add_project_to_db, save_projects_db};
-use project_database::{load_projects_db};
-
+use crate::project_init::{create_project};
+use crate::util::{clean_path};
+use crate::project_database::{load_projects_db, add_project_to_db, save_projects_db};
+use crate::config::{read_config_from, write_config_to};
 
 
 fn main() {
-    #[cfg(unix)]
-    let config_path = Path::new("/Users/james/WinDesktop/ultimate_project_manager/upmconfig.toml"); // ADJUST PATH TO WHEREVER YOUR ROOT AND toml IS LOCATED
-
-    #[cfg(windows)]
-    let config_path = Path::new("J:\\ultimate_project_manager\\upmconfig.toml"); // ADJUST PATH TO WHEREVER YOUR ROOT AND toml IS LOCATED
-    
-    let config = read_config_from(config_path);
+    let mut config = read_config_from();
     let matches = ClapCommand::new("upm")
         .version("0.1.2")
         .about("Manages programming projects")
@@ -504,14 +499,7 @@ fn copy_dir_contents(src: &Path, dst: &Path) -> io::Result<()> {
 
 fn set_editor(argument: &str) {
     // Read the current configuration from upmconfig.toml
-    let config_path = Path::new("J:\\ultimate_project_manager\\upmconfig.toml"); // Adjust as necessary
-    let mut config: Config = match fs::read_to_string(config_path) {
-        Ok(contents) => toml::from_str(&contents).expect("Failed to parse config file"),
-        Err(e) => {
-            eprintln!("Failed to read config file: {}", e);
-            return;
-        }
-    };
+    let mut config = read_config_from();
     let vscode_pattern = Regex::new(r#"(?i)vs\s*code|visual\s*studio\s*code|visual[-\s]*"#).unwrap();
     let vim_pattern = Regex::new(r#"(?i)vim"#).unwrap();
     let eclipse_pattern = Regex::new(r#"(?i)eclipse"#).unwrap();
@@ -553,13 +541,7 @@ fn set_editor(argument: &str) {
         println!("Check for typos in your argument if you believe this is an error.");
         println!("To view a list of supported editors, try 'upm list editors'.");
     }
-    // Write to config file
-    let toml_str = toml::to_string_pretty(&config).expect("Failed to serialize to TOML");
-    if let Err(e) = fs::write(config_path, toml_str) {
-        eprintln!("Failed to write to config file: {}", e);
-        return;
-    }
-    
+    write_config_to(&config);
     println!("Editor preference updated successfully.");
 }
 
@@ -567,14 +549,7 @@ fn set_defaults(argument: &str) {
     println!("Setting defaults for '{}'", argument);
 
     // Read the current configuration from upmconfig.toml
-    let config_path = Path::new("J:\\ultimate_project_manager\\upmconfig.toml"); // Adjust as necessary
-    let mut config: Config = match fs::read_to_string(config_path) {
-        Ok(contents) => toml::from_str(&contents).expect("Failed to parse config file"),
-        Err(e) => {
-            eprintln!("Failed to read config file: {}", e);
-            return;
-        }
-    };
+    let mut config = read_config_from();
 
     // Determine which flag to toggle
     match argument {
@@ -593,12 +568,7 @@ fn set_defaults(argument: &str) {
     }
 
     // Save the updated configuration back to the file
-    let toml_str = toml::to_string_pretty(&config).expect("Failed to serialize to TOML");
-    if let Err(e) = fs::write(config_path, toml_str) {
-        eprintln!("Failed to write to config file: {}", e);
-        return;
-    }
-    
+    write_config_to(&config);
     println!("Defaults updated successfully.");
 }
 

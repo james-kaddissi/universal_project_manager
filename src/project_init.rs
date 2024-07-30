@@ -1,13 +1,10 @@
 use std::path::Path;
 use std::process::Command;
-use serde::{Serialize, Deserialize};
-use std::fs::{self, OpenOptions};
-use std::io::{Read, Write};
-use serde_json;
-use std::collections::HashMap;
+use std::fs::{self};
+use std::io::{Write};
 
-use project_database::{ProjectsDb, ProjectInfo, load_projects_db, save_projects_db, add_project_to_db};
-use util::{clean_path};
+use crate::project_database::{save_projects_db, add_project_to_db};
+use crate::util::{clean_path};
 
 pub fn create_project(project_name: &str, project_language: &str, git: bool, ignore: bool, venv: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     let lowercase = project_language.to_lowercase();
