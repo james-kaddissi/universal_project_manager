@@ -1,5 +1,5 @@
 # install.ps1
-$sourcePath = ".\target\release\ultimate_project_manager.exe"
+$sourcePath = ".\target\release\universal_project_manager.exe"
 $destinationPath = "C:\Windows\System32\upm.exe"
 
 # Ensure the destination directory exists
@@ -11,4 +11,4 @@ if (-not (Test-Path $destinationDir)) {
 # Copy the binary
 Copy-Item $sourcePath $destinationPath -Force
 
-Write-Output "Ultimate Project Manager has been installed to $destinationPath"
+Write-Output "Universal Project Manager has been installed to $destinationPath"

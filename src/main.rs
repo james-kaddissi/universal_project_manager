@@ -279,23 +279,46 @@ fn parse_env_line(line: &str) -> Option<(&str, &str)> {
 }
 
 fn secrets_manager(action: &str, secret: &str, secret_value: &str) {
-    if action == "save" || action == "add" {
-        let current_dir = env::current_dir().unwrap();
-        let current_dir_str = clean_path(&current_dir);
-        let db = load_projects_db();
+    if db.projects.iter().any(|(_key, value)| current_dir_str.starts_with(&value.project_path)) {
+        if action == "save" || action == "add" {
+            let current_dir = env::current_dir().unwrap();
+            let current_dir_str = clean_path(&current_dir);
+            let db = load_projects_db();
 
-        if db.projects.iter().any(|(_key, value)| current_dir_str.starts_with(&value.project_path)) {
+
+            let current_dir = env::current_dir().unwrap();
+            let env_file_path = current_dir.join(".env");
+            let mut secrets_map = load_secrets(&env_file_path);
+            secrets_map.insert(secret.to_string(), secret_value.to_string());
+            save_secrets(&env_file_path, &secrets_map);
+            println!("Secret added successfully.");
+        } else if action == "delete" || action == "remove" {
             let current_dir = env::current_dir().unwrap();
             let env_file_path = current_dir.join(".env");
 
             let mut secrets_map = load_secrets(&env_file_path);
 
-            secrets_map.insert(secret.to_string(), secret_value.to_string());
-            save_secrets(&env_file_path, &secrets_map);
+            if secrets_map.remove(secret).is_some() {
+                save_secrets(&env_file_path, &secrets_map);
+                println!("Secret removed successfully.");
+            } else {
+                println!("Secret not found.");
+            }
+        } else if action == "show" {
+            let current_dir = env::current_dir().unwrap();
+            let env_file_path = current_dir.join(".env");
+
+            let secrets_map = load_secrets(&env_file_path);
+
+            for (key, value) in secrets_map {
+                println!("{}={}", key, value);
+            }
         } else {
-            println!("This directory is not recognized as a UPM project.");
-            return;
+            println!("Unsupported action '{}'.", action);
         }
+    } else {
+        println!("This directory is not recognized as a UPM project.");
+        return;
     }
 }
 
@@ -313,7 +336,7 @@ fn list_manager(argument: &str) {
             println!("8. GS-Edit");
         },
         "templates" => {
-            let templates_dir = Path::new("J:\\ultimate_project_manager\\templates");
+            let templates_dir = Path::new("J:\\universal_project_manager\\templates");
             if !templates_dir.exists() {
                 eprintln!("No templates found.");
                 return;
@@ -351,7 +374,7 @@ fn template_manager(action: &str, template_name: &str, project_name: Option<&str
             };
 
             // Create a templates directory if it doesn't exist
-            let templates_dir = Path::new("J:\\ultimate_project_manager\\templates");
+            let templates_dir = Path::new("J:\\universal_project_manager\\templates");
             if !templates_dir.exists() {
                 if let Err(err) = fs::create_dir_all(&templates_dir) {
                     eprintln!("Failed to create templates directory: {}", err);
@@ -380,7 +403,7 @@ fn template_manager(action: &str, template_name: &str, project_name: Option<&str
             
 
             // Define the path to the templates directory and the specific template
-            let templates_dir = Path::new("J:\\ultimate_project_manager\\templates\\").join(template_name);
+            let templates_dir = Path::new("J:\\universal_project_manager\\templates\\").join(template_name);
 
             if !templates_dir.exists() {
                 eprintln!("Template '{}' does not exist.", template_name);
@@ -440,7 +463,7 @@ fn template_manager(action: &str, template_name: &str, project_name: Option<&str
 
         },
         "delete" => {
-            let templates_dir = Path::new("J:\\ultimate_project_manager\\templates"); 
+            let templates_dir = Path::new("J:\\universal_project_manager\\templates"); 
             let template_path = templates_dir.join(template_name);
 
             if template_path.exists() {
@@ -454,7 +477,7 @@ fn template_manager(action: &str, template_name: &str, project_name: Option<&str
             }
         },
         "list" => {
-            let templates_dir = Path::new("J:\\ultimate_project_manager\\templates");
+            let templates_dir = Path::new("J:\\universal_project_manager\\templates");
             if !templates_dir.exists() {
                 eprintln!("No templates found.");
                 return;

@@ -5,10 +5,10 @@ use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 
 #[cfg(windows)]
-const DB_PATH: &str = "J:\\ultimate_project_manager\\upm_projects.json"; // Adjust the path as necessary
+const DB_PATH: &str = "J:\\universal_project_manager\\upm_projects.json"; // Adjust the path as necessary
 
 #[cfg(unix)]
-const DB_PATH: &str = "/Users/james/WinDesktop/ultimate_project_manager/upm_projects.json"; 
+const DB_PATH: &str = "/Users/james/WinDesktop/universal_project_manager/upm_projects.json"; 
 
 #[derive(Serialize, Deserialize)]
 pub struct ProjectsDb {

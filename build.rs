@@ -30,7 +30,7 @@ fn unix_instructions() {
         // Attempt to copy the binary using `sudo`, which might prompt the user for their password.
         match Command::new("sudo")
             .arg("cp")
-            .arg("target/release/ultimate_project_manager")
+            .arg("target/release/universal_project_manager")
             .arg("/usr/local/bin/upm")
             .status()
         {

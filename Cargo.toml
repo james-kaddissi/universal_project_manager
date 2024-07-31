@@ -1,5 +1,5 @@
 [package]
-name = "ultimate_project_manager"
+name = "universal_project_manager"
 version = "0.1.2"
 edition = "2021"
 build = "build.rs"

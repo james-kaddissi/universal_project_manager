@@ -2,10 +2,10 @@ use serde::{Serialize, Deserialize};
 use std::fs;
 
 #[cfg(unix)]
-const CONFIG_PATH: &str = "/Users/james/WinDesktop/ultimate_project_manager/upmconfig.toml";
+const CONFIG_PATH: &str = "/Users/james/WinDesktop/universal_project_manager/upmconfig.toml";
 
 #[cfg(windows)]
-const CONFIG_PATH: &str = "J:\\ultimate_project_manager\\upmconfig.toml";
+const CONFIG_PATH: &str = "J:\\universal_project_manager\\upmconfig.toml";
 
 #[derive(Deserialize, Serialize)]
 pub struct Config {
