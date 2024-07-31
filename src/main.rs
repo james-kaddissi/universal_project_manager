@@ -279,13 +279,11 @@ fn parse_env_line(line: &str) -> Option<(&str, &str)> {
 }
 
 fn secrets_manager(action: &str, secret: &str, secret_value: &str) {
+    let current_dir = env::current_dir().unwrap();
+    let current_dir_str = clean_path(&current_dir);
+    let db = load_projects_db();
     if db.projects.iter().any(|(_key, value)| current_dir_str.starts_with(&value.project_path)) {
         if action == "save" || action == "add" {
-            let current_dir = env::current_dir().unwrap();
-            let current_dir_str = clean_path(&current_dir);
-            let db = load_projects_db();
-
-
             let current_dir = env::current_dir().unwrap();
             let env_file_path = current_dir.join(".env");
             let mut secrets_map = load_secrets(&env_file_path);
@@ -311,7 +309,10 @@ fn secrets_manager(action: &str, secret: &str, secret_value: &str) {
             let secrets_map = load_secrets(&env_file_path);
 
             for (key, value) in secrets_map {
-                println!("{}={}", key, value);
+                if key == secret {
+                    println!("{}={}", key, value);
+                    return;
+                }
             }
         } else {
             println!("Unsupported action '{}'.", action);
