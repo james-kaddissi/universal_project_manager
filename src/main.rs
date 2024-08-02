@@ -211,6 +211,9 @@ fn main() {
             if modifier == "editor" {
                 set_editor(argument);
             }
+            if modifier == "license" {
+                set_license(argument);
+            }
         },
         Some(("template", sub_m)) => {
             let action = sub_m.get_one::<String>("ACTION").unwrap();
@@ -435,6 +438,61 @@ fn copy_dir_contents(src: &Path, dst: &Path) -> io::Result<()> {
         }
     }
     Ok(())
+}
+
+fn set_license(argument: &str) {
+    // Read the current configuration from upmconfig.toml
+    let mut config = read_config_from();
+
+    let mit_pattern = Regex::new(r#"(?i)mit"#).unwrap();
+    let apache_pattern = Regex::new(r#"(?i)apache"#).unwrap();
+    let gpl_v3_pattern = Regex::new(r#"(?i)gpl-?v?3(\.0)?"#).unwrap();
+    let bsd_3_clause_pattern = Regex::new(r#"(?i)bsd-?3(\.0)?"#).unwrap();
+    let agpl_v3_pattern = Regex::new(r#"(?i)agpl-?v?3(\.0)?"#).unwrap();
+    let mpl_2_pattern = Regex::new(r#"(?i)mpl-?2(\.0)?"#).unwrap();
+    let lgpl_v3_pattern = Regex::new(r#"(?i)lgpl-?v?3(\.0)?"#).unwrap();
+    let epl_2_pattern = Regex::new(r#"(?i)epl-?2(\.0)?"#).unwrap();
+    let unlicense_pattern = Regex::new(r#"(?i)unlicense"#).unwrap();
+    let gpl_v2_pattern = Regex::new(r#"(?i)gpl-?v?2(\.0)?"#).unwrap();
+
+    if mit_pattern.is_match(argument) {
+        config.preferences.license = "MIT".to_string();
+        println!("Default license updated to MIT");
+    } else if apache_pattern.is_match(argument) {
+        config.preferences.license = "Apache-2.0".to_string();
+        println!("Default license updated to Apache License 2.0");
+    } else if gpl_v3_pattern.is_match(argument) {
+        config.preferences.license = "GPL-3.0".to_string();
+        println!("Default license updated to GNU General Public License v3.0");
+    } else if bsd_3_clause_pattern.is_match(argument) {
+        config.preferences.license = "BSD-3-Clause".to_string();
+        println!("Default license updated to BSD 3-Clause License");
+    } else if agpl_v3_pattern.is_match(argument) {
+        config.preferences.license = "AGPL-3.0".to_string();
+        println!("Default license updated to GNU Affero General Public License v3.0");
+    } else if mpl_2_pattern.is_match(argument) {
+        config.preferences.license = "MPL-2.0".to_string();
+        println!("Default license updated to Mozilla Public License 2.0");
+    } else if lgpl_v3_pattern.is_match(argument) {
+        config.preferences.license = "LGPL-3.0".to_string();
+        println!("Default license updated to GNU Lesser General Public License v3.0");
+    } else if epl_2_pattern.is_match(argument) {
+        config.preferences.license = "EPL-2.0".to_string();
+        println!("Default license updated to Eclipse Public License 2.0");
+    } else if unlicense_pattern.is_match(argument) {
+        config.preferences.license = "Unlicense".to_string();
+        println!("Default license updated to Unlicense");
+    } else if gpl_v2_pattern.is_match(argument) {
+        config.preferences.license = "GPL-2.0".to_string();
+        println!("Default license updated to GNU General Public License v2.0");
+    } else {
+        println!("The license '{}' is not recognized or supported by UPM.", argument);
+        println!("To view a list of supported licenses, try 'upm list licenses'.");
+        return; 
+    }
+
+    write_config_to(&config); 
+    println!("License preference updated successfully.");
 }
 
 fn set_editor(argument: &str) {
