@@ -3,25 +3,25 @@ use std::process::Command;
 use std::fs::{self};
 use std::io::{Write};
 
-use crate::project_database::{save_projects_db, add_project_to_db};
+use crate::project_database::{add_project_to_db};
 use crate::util::{clean_path};
 
 pub fn create_project(project_name: &str, project_language: &str, git: bool, ignore: bool, venv: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     let lowercase = project_language.to_lowercase();
     match lowercase.as_str() {
         "python" => create_python_project(project_name, git, ignore, venv, license, readme, tests, docs, docker),
-        "cpp" => create_cpp_project(project_name, git, ignore, venv, license, readme, tests, docs, docker),
-        "c++" => create_cpp_project(project_name, git, ignore, venv, license, readme, tests, docs, docker),
-        "c" => create_c_project(project_name, git, ignore, venv, license, readme, tests, docs, docker),
-        "rust" => create_rust_project(project_name, git, ignore, venv, license, readme, tests, docs, docker),
-        "rs" => create_rust_project(project_name, git, ignore, venv, license, readme, tests, docs, docker),
-        "html" => create_html_project(project_name, git, ignore, venv, license, readme, tests, docs, docker),
-        "react" => create_react_project(project_name, git, ignore, venv, license, readme, tests, docs, docker),
-        "java" => create_java_project(project_name, git, ignore, venv, license, readme, tests, docs, docker),
-        "javascript" => create_javascript_project(project_name, git, ignore, venv, license, readme, tests, docs, docker),
-        "ruby" => create_ruby_project(project_name, git, ignore, venv, license, readme, tests, docs, docker),
-        "cs" => create_cs_project(project_name, git, ignore, venv, license, readme, tests, docs, docker),
-        "c#" => create_cs_project(project_name, git, ignore, venv, license, readme, tests, docs, docker),
+        "cpp" => create_cpp_project(project_name, git, ignore, license, readme, tests, docs, docker),
+        "c++" => create_cpp_project(project_name, git, ignore, license, readme, tests, docs, docker),
+        "c" => create_c_project(project_name, git, ignore, license, readme, tests, docs, docker),
+        "rust" => create_rust_project(project_name, git, ignore, license, readme, tests, docs, docker),
+        "rs" => create_rust_project(project_name, git, ignore, license, readme, tests, docs, docker),
+        "html" => create_html_project(project_name, git, ignore, license, readme, tests, docs, docker),
+        "react" => create_react_project(project_name, git, ignore, license, readme, tests, docs, docker),
+        "java" => create_java_project(project_name, git, ignore, license, readme, tests, docs, docker),
+        "javascript" => create_javascript_project(project_name, git, ignore, license, readme, tests, docs, docker),
+        "ruby" => create_ruby_project(project_name, git, ignore, license, readme, tests, docs, docker),
+        "cs" => create_cs_project(project_name, git, ignore, license, readme, tests, docs, docker),
+        "c#" => create_cs_project(project_name, git, ignore, license, readme, tests, docs, docker),
         _ => println!("Unsupported project language."),
     }
 
@@ -64,6 +64,20 @@ fn initialize_license(project_path: &Path) {
     println!("Initialized LICENSE file.");
 }
 
+fn initialize_readme(project_path: &Path) {
+    let readme_path = project_path.join("README.md");
+    let readme_content = "# Project Title\n\nDescription of the project.";
+    fs::write(readme_path, readme_content).expect("Failed to create README.md");
+    println!("Initialized README.md.");
+}
+
+fn initialize_docker(project_path: &Path) {
+    let docker_path = project_path.join("Dockerfile");
+    let docker_content = "";
+    fs::write(docker_path, docker_content).expect("Failed to create Dockerfile");
+    println!("Initialized Dockerfile.");
+}
+
 fn initialize_git(project_path: &Path, git: bool, ignore: bool) {
     if git {
         Command::new("git")
@@ -81,7 +95,25 @@ fn initialize_git(project_path: &Path, git: bool, ignore: bool) {
     }
 }
 
-fn create_cpp_project(project_name: &str, git: bool, ignore: bool, venv: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
+fn initialize_documents(project_path: &Path, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
+    if license {
+        initialize_license(project_path);
+    }
+    if readme {
+        initialize_readme(project_path);
+    }
+    if tests {
+        initialize_tests(project_path);
+    }
+    if docs {
+        initialize_docs(project_path);
+    }
+    if docker {
+        initialize_docker(project_path);
+    }
+}
+
+fn create_cpp_project(project_name: &str, git: bool, ignore: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     println!("Initializing C++ project...");
     let root_path = Path::new(project_name);
     if root_path.exists() {
@@ -94,10 +126,11 @@ fn create_cpp_project(project_name: &str, git: bool, ignore: bool, venv: bool, l
     writeln!(main_cpp, "#include <iostream>\n\nint main() {{\n    std::cout << \"Hello, World!\" << std::endl;\n    return 0;\n}}").expect("Failed to write to main.cpp");
 
     initialize_git(root_path, git, ignore);
+    initialize_documents(root_path, license, readme, tests, docs, docker);
     println!("Project {} created successfully.", project_name);
 }
 
-fn create_c_project(project_name: &str, git: bool, ignore: bool, venv: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
+fn create_c_project(project_name: &str, git: bool, ignore: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     println!("Initializing C project...");
     let root_path = Path::new(project_name);
     if root_path.exists() {
@@ -110,11 +143,13 @@ fn create_c_project(project_name: &str, git: bool, ignore: bool, venv: bool, lic
     writeln!(main_c, "#include <stdio.h>\n\nint main() {{\n    printf(\"Hello, World!\\n\");\n    return 0;\n}}").expect("Failed to write to main.c");
 
     initialize_git(root_path, git, ignore);
+    initialize_documents(root_path, license, readme, tests, docs, docker);
     println!("Project {} created successfully.", project_name);
 }
 
-fn create_rust_project(project_name: &str, git: bool, ignore: bool, venv: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
+fn create_rust_project(project_name: &str, git: bool, ignore: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     println!("Initializing Rust project...");
+    let root_path = Path::new(project_name);
     Command::new("cargo")
         .args(&["new", project_name, "--bin"])
         .status()
@@ -126,10 +161,11 @@ fn create_rust_project(project_name: &str, git: bool, ignore: bool, venv: bool, 
         fs::write(gitignore_path, gitignore_content).expect("Failed to create .gitignore");
         println!("Created .gitignore");
     }
+    initialize_documents(root_path, license, readme, tests, docs, docker);
     println!("Project {} created successfully.", project_name);
 }
 
-fn create_html_project(project_name: &str, git: bool, ignore: bool, venv: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
+fn create_html_project(project_name: &str, git: bool, ignore: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     println!("Initializing HTML project...");
     let root_path = Path::new(project_name);
     if root_path.exists() {
@@ -144,13 +180,15 @@ fn create_html_project(project_name: &str, git: bool, ignore: bool, venv: bool, 
     writeln!(index_html, "<!DOCTYPE html>\n<html>\n<head>\n    <title>{}</title>\n</head>\n<body>\n    <h1>Hello, World!</h1>\n</body>\n</html>", project_name).expect("Failed to write to index.html");
 
     initialize_git(root_path, git, ignore);
+    initialize_documents(root_path, license, readme, tests, docs, docker);
     println!("Project {} created successfully.", project_name);
 }
 
 
 
-fn create_react_project(project_name: &str, git: bool, ignore: bool, venv: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
+fn create_react_project(project_name: &str, git: bool, ignore: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     println!("Initializing React project...");
+    let root_path = Path::new(project_name);
     Command::new("npx")
         .args(&["create-react-app", project_name])
         .status()
@@ -159,10 +197,11 @@ fn create_react_project(project_name: &str, git: bool, ignore: bool, venv: bool,
     if git && ignore {
         println!("React project initialized with git and .gitignore by default.");
     }
+    initialize_documents(root_path, license, readme, tests, docs, docker);
     println!("Project {} created successfully.", project_name);
 }
 
-fn create_java_project(project_name: &str, git: bool, ignore: bool, venv: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
+fn create_java_project(project_name: &str, git: bool, ignore: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     println!("Initializing Java project...");
     let root_path = Path::new(project_name);
     if root_path.exists() {
@@ -177,10 +216,11 @@ fn create_java_project(project_name: &str, git: bool, ignore: bool, venv: bool, 
     writeln!(main_java, "public class Main {{\n    public static void main(String[] args) {{\n        System.out.println(\"Hello, World!\");\n    }}\n}}").expect("Failed to write to Main.java");
 
     initialize_git(root_path, git, ignore);
+    initialize_documents(root_path, license, readme, tests, docs, docker);
     println!("Project {} created successfully.", project_name);
 }
 
-fn create_javascript_project(project_name: &str, git: bool, ignore: bool, venv: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
+fn create_javascript_project(project_name: &str, git: bool, ignore: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     println!("Initializing JavaScript project...");
     let root_path = Path::new(project_name);
     if root_path.exists() {
@@ -200,10 +240,11 @@ fn create_javascript_project(project_name: &str, git: bool, ignore: bool, venv: 
         .expect("Failed to initialize npm project");
 
     initialize_git(root_path, git, ignore);
+    initialize_documents(root_path, license, readme, tests, docs, docker);
     println!("Project {} created successfully.", project_name);
 }
 
-fn create_ruby_project(project_name: &str, git: bool, ignore: bool, venv: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
+fn create_ruby_project(project_name: &str, git: bool, ignore: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     println!("Initializing Ruby project...");
     let root_path = Path::new(project_name);
     if root_path.exists() {
@@ -217,11 +258,13 @@ fn create_ruby_project(project_name: &str, git: bool, ignore: bool, venv: bool, 
     writeln!(main_rb, "puts 'Hello, World!'").expect("Failed to write to main.rb");
 
     initialize_git(root_path, git, ignore);
+    initialize_documents(root_path, license, readme, tests, docs, docker);
     println!("Project {} created successfully.", project_name);
 }
 
-fn create_cs_project(project_name: &str, git: bool, ignore: bool, venv: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
+fn create_cs_project(project_name: &str, git: bool, ignore: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     println!("Initializing C# project...");
+    let root_path = Path::new(project_name);
     Command::new("dotnet")
         .args(&["new", "console", "-n", project_name])
         .status()
@@ -229,6 +272,7 @@ fn create_cs_project(project_name: &str, git: bool, ignore: bool, venv: bool, li
 
     let project_path = Path::new(project_name);
     initialize_git(project_path, git, ignore);
+    initialize_documents(root_path, license, readme, tests, docs, docker);
     println!("Project {} created successfully.", project_name);
 }
 
@@ -265,7 +309,7 @@ fn create_python_project(project_name: &str, git: bool, ignore: bool, venv: bool
         println!("CREATING PYTHON VENV");
         create_virtual_env(project_name);
     }
-
+    initialize_documents(root_path, license, readme, tests, docs, docker);
     println!("Project {} created successfully.", project_name);
 }
 
