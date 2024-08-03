@@ -5,6 +5,7 @@ use std::io::{Write};
 
 use crate::project_database::{add_project_to_db};
 use crate::util::{clean_path};
+use crate::config::{read_config_from};
 
 pub fn create_project(project_name: &str, project_language: &str, git: bool, ignore: bool, venv: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     let lowercase = project_language.to_lowercase();
@@ -59,9 +60,37 @@ fn initialize_tests(project_path: &Path) {
 
 fn initialize_license(project_path: &Path) {
     let license_path = project_path.join("LICENSE");
-    let license_content = "MIT License";
-    fs::write(license_path, license_content).expect("Failed to create LICENSE file");
-    println!("Initialized LICENSE file.");
+    let license_dir = Path::new("J:\\universal_project_manager\\licenses");
+    if !license_dir.exists() {
+        eprintln!("No licenses directory found.");
+        return;
+    }
+
+    let entries = match fs::read_dir(license_dir) {
+        Ok(entries) => entries,
+        Err(err) => {
+            eprintln!("Failed to read licenses directory: {}", err);
+            return;
+        }
+    };
+    let config = read_config_from();
+    let preferred_license_name = config.preferences.license;
+    for entry in entries {
+        if let Ok(entry) = entry {
+            let license_name = entry.file_name();
+            if *license_name == *preferred_license_name {
+                let license_content = fs::read_to_string(entry.path())
+                    .expect("Failed to read license file");
+                fs::write(&license_path, &license_content)
+                    .expect("Failed to create LICENSE file");
+                println!("Initialized LICENSE file.");
+                return;
+            }
+            println!("{}", license_name.to_string_lossy());
+        }
+    }
+
+    eprintln!("Preferred license not found in the directory.");
 }
 
 fn initialize_readme(project_path: &Path) {

@@ -45,36 +45,36 @@ fn main() {
                 .arg(Arg::new("git")
                     .long("git")
                     .help("Initializes the project with git")
-                    .action(clap::ArgAction::SetTrue)) 
+                    .action(clap::ArgAction::SetFalse))
                 .arg(Arg::new("ignore")
                     .long("ignore")
                     .help("Initializes a .gitignore")
-                    .action(clap::ArgAction::SetTrue)
-                    .requires("git")) // Makes "ignore" require "git"
+                    .requires("git")
+                    .action(clap::ArgAction::SetFalse)) 
                 .arg(Arg::new("venv")
                     .long("venv")
                     .help("Initializes a venv")
-                    .action(clap::ArgAction::SetTrue))
+                    .action(clap::ArgAction::SetFalse))
                 .arg(Arg::new("license")
                     .long("license")
                     .help("Initializes a license. Uses default license if no argument is provided.")
-                    .action(clap::ArgAction::SetTrue))
+                    .action(clap::ArgAction::SetFalse))
                 .arg(Arg::new("readme")
                     .long("readme")
                     .help("Initializes a readme. Uses default readme.")
-                    .action(clap::ArgAction::SetTrue))
+                    .action(clap::ArgAction::SetFalse))
                 .arg(Arg::new("tests")
                     .long("tests")
                     .help("Initializes a tests directory.")
-                    .action(clap::ArgAction::SetTrue))
+                    .action(clap::ArgAction::SetFalse))
                 .arg(Arg::new("docs")
                     .long("docs")
                     .help("Initializes a docs directory.")
-                    .action(clap::ArgAction::SetTrue))
+                    .action(clap::ArgAction::SetFalse))
                 .arg(Arg::new("docker")
                     .long("docker")
                     .help("Initializes the project with docker")
-                    .action(clap::ArgAction::SetTrue))
+                    .action(clap::ArgAction::SetFalse))
         )
         .subcommand(
             ClapCommand::new("add")
@@ -174,7 +174,6 @@ fn main() {
         Some(("new", sub_m)) => {
             let project_name = sub_m.get_one::<String>("PROJECT_NAME").unwrap();
             let project_language = sub_m.get_one::<String>("LANGUAGE").unwrap();
-        
             let git = sub_m.contains_id("git") || config.default_flags.git;
             let ignore = sub_m.contains_id("ignore") || (config.default_flags.ignore && git);
             let venv = sub_m.contains_id("venv") || config.default_flags.venv;
@@ -183,7 +182,6 @@ fn main() {
             let tests = sub_m.contains_id("tests") || config.default_flags.tests;
             let docs = sub_m.contains_id("docs") || config.default_flags.docs;
             let docker = sub_m.contains_id("docker") || config.default_flags.docker;
-        
             create_project(project_name, project_language, git, ignore, venv, license, readme, tests, docs, docker);
         },
         Some(("add", sub_m)) => {
@@ -277,6 +275,27 @@ fn list_manager(argument: &str) {
                 }
             }
         },
+        "licenses" => {
+            let license_dir = Path::new("J:\\universal_project_manager\\licenses");
+            if !license_dir.exists() {
+                eprintln!("No licenses found.");
+                return;
+            }
+
+            let entries = match fs::read_dir(license_dir) {
+                Ok(entries) => entries,
+                Err(err) => {
+                    eprintln!("Failed to read licenses directory: {}", err);
+                    return;
+                }
+            };
+            for entry in entries {
+                if let Ok(entry) = entry {
+                    let license_name = entry.file_name();
+                    println!("{}", license_name.to_string_lossy());
+                }
+            }
+        }
         _ => {println!("Unsupported argument '{}'.", argument);}
     }
 }

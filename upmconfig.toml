@@ -10,5 +10,5 @@ docker = false
 
 [preferences]
 editor = "vscode"
-license = "mit"
+license = "MIT"
 open_editor_on_create = true
