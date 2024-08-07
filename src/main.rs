@@ -90,6 +90,22 @@ fn main() {
                 .about("Runs the main entrypoint of the project")
         )
         .subcommand(
+            ClapCommand::new("script")
+                .about("Manages specific scripts.")
+                .arg(Arg::new("ACTION")
+                    .help("The action to perform on the script")
+                    .required(true)
+                    .index(1))
+                .arg(Arg::new("SCRIPT_NAME")
+                    .help("The name of the script")
+                    .required(true)
+                    .index(2))
+                .arg(Arg::new("SCRIPT_PATH")
+                    .help("Specifies the path of the script")
+                    .required(false)
+                    .index(3))
+        )
+        .subcommand(
             ClapCommand::new("init")
                 .about("Initializes the current directory as a upm project")
                 .arg(Arg::new("LANGUAGE")
@@ -208,6 +224,21 @@ fn main() {
         Some(("run", _)) => {
             run_project();
         },
+        Some(("script", sub_m)) => {
+            let action = sub_m.get_one::<String>("ACTION").unwrap();
+            let script_name = sub_m.get_one::<String>("SCRIPT_NAME").unwrap();
+            let script_path = sub_m.get_one::<String>("SCRIPT_PATH");
+
+            if action == "save" {
+                save_script(script_name, script_path.map(String::as_str));
+            }
+            if action == "delete" {
+                delete_script(script_name);
+            }
+            if action == "add" {
+                add_script(script_name);
+            }
+        },
         Some(("init", sub_m)) => {
             let project_language = sub_m.get_one::<String>("LANGUAGE");
             let project_main = sub_m.get_one::<String>("MAIN");
@@ -287,6 +318,7 @@ fn delete_project(project: &str) {
         println!("Project '{}' not found in database.", project);
     }
 }
+
 
 fn open_project(project: &str) {
     let db = load_projects_db();
@@ -421,6 +453,143 @@ fn list_manager(argument: &str) {
         },
         _ => {println!("Unsupported argument '{}'.", argument);}
     }
+}
+
+fn delete_script(script_name: &str) {
+    // Get current directory
+    let current_dir = match env::current_dir() {
+        Ok(path) => path,
+        Err(err) => {
+            eprintln!("Failed to get current directory: {}", err);
+            return;
+        }
+    };
+
+    // Locate scripts directory
+    let scripts_dir = current_dir.join("J:\\universal_project_manager\\scripts");
+
+    // Iterate over files in scripts directory
+    for entry in fs::read_dir(&scripts_dir).unwrap() {
+        let entry = entry.unwrap();
+        let path = entry.path();
+
+        // Check if the file matches the script_name (without extension)
+        if let Some(file_name) = path.file_stem() {
+            if file_name == script_name {
+                // Delete the file
+                if let Err(err) = fs::remove_file(&path) {
+                    eprintln!("Failed to delete script '{}': {}", script_name, err);
+                    return;
+                }
+
+                println!("Script '{}' deleted successfully.", script_name);
+                return;
+            }
+        }
+    }
+
+    println!("Script '{}' not found.", script_name);
+}
+
+
+
+fn add_script(script_name: &str) {
+    let current_dir = match env::current_dir() {
+        Ok(path) => path,
+        Err(err) => {
+            eprintln!("Failed to get current directory: {}", err);
+            return;
+        }
+    };
+
+    // Locate scripts directory
+    let scripts_dir = current_dir.join("J:\\universal_project_manager\\scripts");
+
+    // Iterate over files in scripts directory
+    for entry in fs::read_dir(&scripts_dir).unwrap() {
+        let entry = entry.unwrap();
+        let path = entry.path();
+
+        // Check if the file matches the script_name (without extension)
+        if let Some(file_name) = path.file_stem() {
+            if file_name == script_name {
+                // Determine the extension of the file
+                let file_extension = match path.extension() {
+                    Some(ext) => ext.to_string_lossy().into_owned(),
+                    None => {
+                        eprintln!("Invalid script file: no extension found.");
+                        return;
+                    }
+                };
+
+                // Construct the destination path in the current directory
+                let dest_path = current_dir.join(format!("{}.{}", script_name, file_extension));
+
+                // Copy the script file to the current directory
+                match fs::copy(&path, &dest_path) {
+                    Ok(_) => {
+                        println!("Script '{}' added successfully to '{}'.", script_name, dest_path.display());
+                        return;
+                    }
+                    Err(err) => {
+                        eprintln!("Failed to add script '{}': {}", script_name, err);
+                        return;
+                    }
+                }
+            }
+        }
+    }
+
+    println!("Script '{}' not found.", script_name);
+}
+
+fn save_script(script_name: &str, script_path: Option<&str>) {
+    // Ensure script_path is provided
+    let script_path = match script_path {
+        Some(path) => path,
+        None => {
+            eprintln!("No script file path provided.");
+            return;
+        }
+    };
+
+    // Get current directory
+    let current_dir = match env::current_dir() {
+        Ok(path) => path,
+        Err(err) => {
+            eprintln!("Failed to get current directory: {}", err);
+            return;
+        }
+    };
+
+    // Create a scripts directory if it doesn't exist
+    let scripts_dir = current_dir.join("J:\\universal_project_manager\\scripts");
+    if !scripts_dir.exists() {
+        if let Err(err) = fs::create_dir_all(&scripts_dir) {
+            eprintln!("Failed to create scripts directory: {}", err);
+            return;
+        }
+    }
+
+    // Determine the file extension from script_path
+    let original_extension = match Path::new(script_path).extension() {
+        Some(ext) => ext,
+        None => {
+            eprintln!("Invalid script file path: no extension found.");
+            return;
+        }
+    };
+
+    // Create the full path for the new script file
+    let new_script_path = scripts_dir.join(format!("{}.{}", script_name, original_extension.to_string_lossy()));
+
+    // Copy the script file to the scripts directory
+    if let Err(err) = fs::copy(script_path, &new_script_path) {
+        eprintln!("Failed to save script: {}", err);
+        return;
+    }
+
+    println!("Script '{}' saved successfully at '{}'.", script_name, new_script_path.display());
 }
 
 fn template_manager(action: &str, template_name: &str, project_name: Option<&str>, project_language: Option<&str>, project_main: Option<&str>) {

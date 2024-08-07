@@ -75,15 +75,14 @@ upm add - for whatever language you are using, if appropriate (so for C it would
 
 upm run <OPTIONAL_SCRIPT> - runs the main entry point of the project or the optional script path if provided, using the method of running a script for that language.
 
-upm script -
+*upm script -*
 
-a. upm script save <SRC><SRC_SCRIPT> <SAVE_NAME> - saves the script at path src_script to the name save_name
+*a. upm script save
+<src><src_script> <save_name> - saves the script at path src_script to the name save_name*</save_name></src_script></src>
 
-b. upm script add <SAVE_NAME> - adds the script saved under save_name (if it exists) to the current upm project (if in a upm project).
+*b. upm script add <save_name> - adds the script saved under save_name (if it exists) to the current upm project (if in a upm project).*
 
-upm init <LANGUAGE_> <MAIN_> - Initializes the current root project as a upm project with the language and main path being passed as paramaters.
-
-a. warnings for a project not being a upm project should ALWAYS inform of the upm init command for example: 'use upm init in the root of your project to initialize a UPM project'.
+*upm init language_ main_ - Initializes the current root project as a upm project with the language and main path being passed as paramaters.*
 
 *upm open project_name - changes terminal directory to projects root and opens the root in the configured editor. project_name must be recognized as a upm project.* Finished but needs platform checks for Unix.
 
@@ -95,10 +94,10 @@ upm list <ARGUMENT_> - lists details about the argument:
 
 *c. licenses - lists the names of all licenses saved by your UPM (default + custom)*
 
-d. projects - lists the names of all projects with their relevant language/main/path info
+*d. projects - lists the names of all projects with their relevant language/main/path info*
 
-f. preferences - lists the preference configuration of your version.
+*f. preferences - lists the preference configuration of your version.*
 
-upm delete <OPTIONAL_NAME> - deletes the current directory and removes from project list or deletes the name of the upm project supplied.
+*upm delete optional_name - deletes the current directory and removes from project list or deletes the name of the upm project supplied.*
 
 determine a finalize list of supported languages.

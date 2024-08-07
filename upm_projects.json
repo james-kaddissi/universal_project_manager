@@ -1,1 +1,204 @@
-{"projects":{"licensetest":{"project_path":"J:\\licensetest","project_language":"C","project_main":"./src/main.txt"},"teserC":{"project_path":"J:\\teserC","project_language":"C","project_main":"./src/main.txt"},"javat":{"project_path":"J:\\javat","project_language":"java","project_main":"./src/Main.java"},"gs_clips":{"project_path":"J:\\gs_clips","project_language":"python","project_main":"./src/main.py"},"python-pro-test":{"project_path":"J:\\python-pro-test","project_language":"python","project_main":"./src/main.py"},"new-py-test":{"project_path":"J:\\new-py-test","project_language":"python","project_main":"main.py"},"cproj":{"project_path":"J:\\cproj","project_language":"c","project_main":"./src/main.c"},"pythonicus":{"project_path":"J:\\pythonicus","project_language":"python","project_main":"./src/main.py"},"licensestest2":{"project_path":"J:\\licensestest2","project_language":"C","project_main":"./src/main.txt"},"pythonadkjsfg":{"project_path":"J:\\pythonadkjsfg","project_language":"python","project_main":"./src/main.py"},"gs_edit":{"project_path":"J:\\gs_edit","project_language":"python","project_main":"src/gsedit/main.py"},"python-test":{"project_path":"C:\\Users\\james\\python-test","project_language":"python","project_main":"./src/main.py"},"java-test":{"project_path":"C:\\Users\\james\\java-test","project_language":"java","project_main":"./src/Main.java"},"python-v2":{"project_path":"J:\\python-v2","project_language":"python","project_main":"./src/main.py"},"python-v3":{"project_path":"J:\\python-v3","project_language":"python","project_main":"./src/main.py"},"html-teste":{"project_path":"J:\\html-teste","project_language":"html","project_main":"./src/index.html"},"pysada":{"project_path":"J:\\ultimate_project_manager\\pysada","project_language":"cpp","project_main":"./src/main.cpp"},"testerone":{"project_path":"J:\\testerone","project_language":"python","project_main":"./src/main.py"},"f1api":{"project_path":"J:\\f1api","project_language":"python","project_main":"./src/main.py"},"python-v5":{"project_path":"J:\\python-v5","project_language":"python","project_main":"./src/main.py"},"fortma":{"project_path":"D:\\testmain\\fortma","project_language":"python","project_main":"mainmain/main.py"},"testeronefopa":{"project_path":"J:\\testeronefopa","project_language":"C","project_main":"./src/main.txt"},"html-test":{"project_path":"C:\\Users\\james\\html-test","project_language":"html","project_main":"./src/index.html"},"python-v6":{"project_path":"J:\\python-v6","project_language":"python","project_main":"./src/main.py"},"bareeee":{"project_path":"J:\\bareeee","project_language":"cpp","project_main":"./src/main.cpp"},"amazingTest":{"project_path":"J:\\amazingTest","project_language":"C","project_main":"./src/main.txt"},"audio_video_generator":{"project_path":"C:\\Users\\james\\audio_video_generator","project_language":"python","project_main":"./src/main.py"},"java2-test":{"project_path":"C:\\Users\\james\\java2-test","project_language":"java","project_main":"./src/Main.java"},"testerooni":{"project_path":"J:\\testerooni","project_language":"c","project_main":"./src/main.c"},"c-test":{"project_path":"C:\\Users\\james\\c-test","project_language":"c","project_main":"./src/main.c"},"cs-test":{"project_path":"C:\\Users\\james\\cs-test","project_language":"cs","project_main":"./src/Program.cs"},"ht-test":{"project_path":"J:\\ht-test","project_language":"html","project_main":"./src/index.html"},"codeai":{"project_path":"J:\\codeai","project_language":"python","project_main":"./src/main.py"},"finaldocumentstest":{"project_path":"J:\\finaldocumentstest","project_language":"C","project_main":"./src/main.txt"},"cpp-test":{"project_path":"C:\\Users\\james\\cpp-test","project_language":"cpp","project_main":"./src/main.cpp"},"documentstest":{"project_path":"J:\\documentstest","project_language":"C","project_main":"./src/main.txt"},"rust-test":{"project_path":"C:\\Users\\james\\rust-test","project_language":"rust","project_main":"./src/main.rs"},"finalproj":{"project_path":"C:\\Users\\james\\finalproj","project_language":"python","project_main":"./src/main.py"},"3-test":{"project_path":"J:\\3-test","project_language":"python","project_main":"main.py"},"ruby-test":{"project_path":"C:\\Users\\james\\ruby-test","project_language":"ruby","project_main":"./src/main.rb"}}}
+{
+  "projects": {
+    "licensetest": {
+      "project_path": "J:\\licensetest",
+      "project_language": "C",
+      "project_main": "./src/main.txt"
+    },
+    "teserC": {
+      "project_path": "J:\\teserC",
+      "project_language": "C",
+      "project_main": "./src/main.txt"
+    },
+    "javat": {
+      "project_path": "J:\\javat",
+      "project_language": "java",
+      "project_main": "./src/Main.java"
+    },
+    "gs_clips": {
+      "project_path": "J:\\gs_clips",
+      "project_language": "python",
+      "project_main": "./src/main.py"
+    },
+    "python-pro-test": {
+      "project_path": "J:\\python-pro-test",
+      "project_language": "python",
+      "project_main": "./src/main.py"
+    },
+    "new-py-test": {
+      "project_path": "J:\\new-py-test",
+      "project_language": "python",
+      "project_main": "main.py"
+    },
+    "cproj": {
+      "project_path": "J:\\cproj",
+      "project_language": "c",
+      "project_main": "./src/main.c"
+    },
+    "pythonicus": {
+      "project_path": "J:\\pythonicus",
+      "project_language": "python",
+      "project_main": "./src/main.py"
+    },
+    "licensestest2": {
+      "project_path": "J:\\licensestest2",
+      "project_language": "C",
+      "project_main": "./src/main.txt"
+    },
+    "pythonadkjsfg": {
+      "project_path": "J:\\pythonadkjsfg",
+      "project_language": "python",
+      "project_main": "./src/main.py"
+    },
+    "gs_edit": {
+      "project_path": "J:\\gs_edit",
+      "project_language": "python",
+      "project_main": "src/gsedit/main.py"
+    },
+    "python-test": {
+      "project_path": "C:\\Users\\james\\python-test",
+      "project_language": "python",
+      "project_main": "./src/main.py"
+    },
+    "java-test": {
+      "project_path": "C:\\Users\\james\\java-test",
+      "project_language": "java",
+      "project_main": "./src/Main.java"
+    },
+    "python-v2": {
+      "project_path": "J:\\python-v2",
+      "project_language": "python",
+      "project_main": "./src/main.py"
+    },
+    "python-v3": {
+      "project_path": "J:\\python-v3",
+      "project_language": "python",
+      "project_main": "./src/main.py"
+    },
+    "html-teste": {
+      "project_path": "J:\\html-teste",
+      "project_language": "html",
+      "project_main": "./src/index.html"
+    },
+    "pysada": {
+      "project_path": "J:\\ultimate_project_manager\\pysada",
+      "project_language": "cpp",
+      "project_main": "./src/main.cpp"
+    },
+    "testerone": {
+      "project_path": "J:\\testerone",
+      "project_language": "python",
+      "project_main": "./src/main.py"
+    },
+    "f1api": {
+      "project_path": "J:\\f1api",
+      "project_language": "python",
+      "project_main": "./src/main.py"
+    },
+    "python-v5": {
+      "project_path": "J:\\python-v5",
+      "project_language": "python",
+      "project_main": "./src/main.py"
+    },
+    "fortma": {
+      "project_path": "D:\\testmain\\fortma",
+      "project_language": "python",
+      "project_main": "mainmain/main.py"
+    },
+    "testeronefopa": {
+      "project_path": "J:\\testeronefopa",
+      "project_language": "C",
+      "project_main": "./src/main.txt"
+    },
+    "html-test": {
+      "project_path": "C:\\Users\\james\\html-test",
+      "project_language": "html",
+      "project_main": "./src/index.html"
+    },
+    "python-v6": {
+      "project_path": "J:\\python-v6",
+      "project_language": "python",
+      "project_main": "./src/main.py"
+    },
+    "bareeee": {
+      "project_path": "J:\\bareeee",
+      "project_language": "cpp",
+      "project_main": "./src/main.cpp"
+    },
+    "amazingTest": {
+      "project_path": "J:\\amazingTest",
+      "project_language": "C",
+      "project_main": "./src/main.txt"
+    },
+    "audio_video_generator": {
+      "project_path": "C:\\Users\\james\\audio_video_generator",
+      "project_language": "python",
+      "project_main": "./src/main.py"
+    },
+    "java2-test": {
+      "project_path": "C:\\Users\\james\\java2-test",
+      "project_language": "java",
+      "project_main": "./src/Main.java"
+    },
+    "testerooni": {
+      "project_path": "J:\\testerooni",
+      "project_language": "c",
+      "project_main": "./src/main.c"
+    },
+    "c-test": {
+      "project_path": "C:\\Users\\james\\c-test",
+      "project_language": "c",
+      "project_main": "./src/main.c"
+    },
+    "cs-test": {
+      "project_path": "C:\\Users\\james\\cs-test",
+      "project_language": "cs",
+      "project_main": "./src/Program.cs"
+    },
+    "ht-test": {
+      "project_path": "J:\\ht-test",
+      "project_language": "html",
+      "project_main": "./src/index.html"
+    },
+    "codeai": {
+      "project_path": "J:\\codeai",
+      "project_language": "python",
+      "project_main": "./src/main.py"
+    },
+    "finaldocumentstest": {
+      "project_path": "J:\\finaldocumentstest",
+      "project_language": "C",
+      "project_main": "./src/main.txt"
+    },
+    "cpp-test": {
+      "project_path": "C:\\Users\\james\\cpp-test",
+      "project_language": "cpp",
+      "project_main": "./src/main.cpp"
+    },
+    "documentstest": {
+      "project_path": "J:\\documentstest",
+      "project_language": "C",
+      "project_main": "./src/main.txt"
+    },
+    "rust-test": {
+      "project_path": "C:\\Users\\james\\rust-test",
+      "project_language": "rust",
+      "project_main": "./src/main.rs"
+    },
+    "finalproj": {
+      "project_path": "C:\\Users\\james\\finalproj",
+      "project_language": "python",
+      "project_main": "./src/main.py"
+    },
+    "3-test": {
+      "project_path": "J:\\3-test",
+      "project_language": "python",
+      "project_main": "main.py"
+    },
+    "ruby-test": {
+      "project_path": "C:\\Users\\james\\ruby-test",
+      "project_language": "ruby",
+      "project_main": "./src/main.rb"
+    }
+  }
+}
