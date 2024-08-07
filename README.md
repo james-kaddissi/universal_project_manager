@@ -65,6 +65,8 @@ b. Additionally always offer prompts if missing parameter.
 
 c. Additionally address the issue of user not having necessary technologies for a step like for example upm run but not having a certain compiler. Need to warn user and offer an easy fix or automatic installation on the first upm run if viable.
 
+d. Additionally adress the path issues using a constant string instead of automatic configuration.
+
 upm new - upm new should take in a language or optional alternate custom structure. For each language or custom structure a configurable template is used and created with the projects name. This command should take flags that can be toggleable on from project to project. Say you want docker in your project add --docker. You can set certain flags to always be true.
 
 upm template new - simply creates a new upm project from an alternate specified template.
@@ -96,3 +98,5 @@ c. licenses - lists the names of all licenses saved by your UPM (default + custo
 d. projects - lists the names of all projects with their relevant language/main/path info
 
 e. packages - lists the names of all added packages/modules
+
+upm delete <OPTIONAL_NAME> - deletes the current directory and removes from project list or deletes the name of the upm project supplied.

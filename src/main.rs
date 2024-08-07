@@ -1,6 +1,6 @@
 use clap::{Arg, Command as ClapCommand };
 use std::env;
-use std::process::Command;
+use std::process::{Command, Stdio};
 use std::path::{Path, PathBuf};
 use regex::Regex;
 use std::fs::{self};
@@ -10,6 +10,7 @@ pub mod project_database;
 pub mod secrets;
 pub mod util;
 pub mod config;
+
 
 enum PackageManager {
     Pip,
@@ -168,6 +169,14 @@ fn main() {
                     .required(false)
                     .index(3))
         )
+        .subcommand(
+            ClapCommand::new("open")
+                .about("Opens the project in the default editor")
+                .arg(Arg::new("PROJECT")
+                    .help("The name of the project to open")
+                    .required(true)
+                    .index(1))
+        )
         .get_matches();
 
     match matches.subcommand() {
@@ -235,10 +244,65 @@ fn main() {
 
             secrets_manager(action, secret, &secret_value);
         },
+        Some(("open", sub_m)) => {
+            let project = sub_m.get_one::<String>("PROJECT").unwrap();
+            open_project(project);
+        },
         _ => {}
     }
 }
 
+fn open_project(project: &str) {
+    let db = load_projects_db();
+
+    if let Some(project_info) = db.projects.get(project) {
+        let project_path = &project_info.project_path;
+
+        let script_path = if cfg!(windows) {
+            Path::new("J:\\universal_project_manager\\src\\open_project.bat").to_path_buf()
+        } else {
+            Path::new("J:\\universal_project_manager\\src\\open_project.sh").to_path_buf()
+        };
+
+        // Ensure script_path exists before attempting to execute
+        if !script_path.exists() {
+            eprintln!("Script {:?} not found", script_path);
+            return;
+        }
+
+        // Construct the command
+        let status = if cfg!(windows) {
+            Command::new("cmd")
+                .arg("/C")
+                .arg(&script_path)
+                .arg(project_path)
+                .stdout(Stdio::inherit())
+                .stderr(Stdio::inherit())
+                .status()
+        } else {
+            Command::new("sh")
+                .arg("-c")
+                .arg(format!("{} {}", script_path.display(), project_path))
+                .stdout(Stdio::inherit())
+                .stderr(Stdio::inherit())
+                .status()
+        };
+
+        // Handle the command execution result
+        match status {
+            Ok(status) => {
+                if !status.success() {
+                    eprintln!("Failed to execute script {:?}", script_path);
+                }
+            }
+            Err(err) => {
+                eprintln!("Failed to run command: {}", err);
+            }
+        }
+    } else {
+        println!("Project '{}' not found. Ensure it is recognized as a UPM project by using 'upm init' in the root of the project.", project);
+    }
+}
 
 fn list_manager(argument: &str) {
     match argument {
@@ -249,7 +313,6 @@ fn list_manager(argument: &str) {
             println!("3. Eclipse");
             println!("4. Sublime Text");
             println!("5. Atom");
-            println!("6. Notepad");
             println!("7. Notepad++");
             println!("8. GS-Edit");
         },
@@ -522,7 +585,6 @@ fn set_editor(argument: &str) {
     let eclipse_pattern = Regex::new(r#"(?i)eclipse"#).unwrap();
     let sublime_pattern = Regex::new(r#"(?i)sublime"#).unwrap();
     let atom_pattern = Regex::new(r#"(?i)atom"#).unwrap();
-    let notepad_pattern = Regex::new(r#"(?i)notepad"#).unwrap();
     let notepadpp_pattern = Regex::new(r#"(?i)notepad\+\+"#).unwrap();
     let gsedit_pattern = Regex::new(r#"(?i)gs\s*edit"#).unwrap();
     
@@ -545,9 +607,6 @@ fn set_editor(argument: &str) {
     } else if notepadpp_pattern.is_match(argument) {
         config.preferences.editor = "notepad++".to_string();
         println!("Default editor updated to Notepad++");
-    } else if notepad_pattern.is_match(argument) {
-        config.preferences.editor = "notepad".to_string();
-        println!("Default editor updated to Notepad");
     } else if gsedit_pattern.is_match(argument) {
         config.preferences.editor = "gsedit".to_string();
         println!("Default editor updated to GS-Edit");
