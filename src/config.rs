@@ -29,7 +29,6 @@ pub struct DefaultFlags {
 pub struct Preferences {
     pub editor: String,
     pub license: String,
-    pub open_editor_on_create: bool,
 }
 
 pub fn read_config_from() -> Config {

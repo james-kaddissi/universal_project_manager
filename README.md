@@ -85,18 +85,20 @@ upm init <LANGUAGE_> <MAIN_> - Initializes the current root project as a upm pro
 
 a. warnings for a project not being a upm project should ALWAYS inform of the upm init command for example: 'use upm init in the root of your project to initialize a UPM project'.
 
-upm open <PROJECT_NAME> - changes terminal directory to projects root and opens the root in the configured editor. project_name must be recognized as a upm project.
+*upm open project_name - changes terminal directory to projects root and opens the root in the configured editor. project_name must be recognized as a upm project.* Finished but needs platform checks for Unix.
 
 upm list <ARGUMENT_> - lists details about the argument:
 
-a. editors - lists supported text editors (configurable by upm config)
+*a. editors - lists supported text editors (configurable by upm config)*
 
-b. templates - lists the names of all templates saved by your UPM (default + custom)
+*b. templates - lists the names of all templates saved by your UPM (default + custom)* May need to remove README?
 
-c. licenses - lists the names of all licenses saved by your UPM (default + custom)
+*c. licenses - lists the names of all licenses saved by your UPM (default + custom)*
 
 d. projects - lists the names of all projects with their relevant language/main/path info
 
-e. packages - lists the names of all added packages/modules
+f. preferences - lists the preference configuration of your version.
 
 upm delete <OPTIONAL_NAME> - deletes the current directory and removes from project list or deletes the name of the upm project supplied.
+
+determine a finalize list of supported languages.

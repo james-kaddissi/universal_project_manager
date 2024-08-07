@@ -177,6 +177,14 @@ fn main() {
                     .required(true)
                     .index(1))
         )
+        .subcommand(
+            ClapCommand::new("delete")
+                .about("Deletes the project specified.")
+                .arg(Arg::new("PROJECT")
+                    .help("The name of the project to delete")
+                    .required(true)
+                    .index(1))
+        )
         .get_matches();
 
     match matches.subcommand() {
@@ -248,7 +256,35 @@ fn main() {
             let project = sub_m.get_one::<String>("PROJECT").unwrap();
             open_project(project);
         },
+        Some(("delete", sub_m)) => {
+            let project = sub_m.get_one::<String>("PROJECT").unwrap();
+            delete_project(project);
+        },
         _ => {}
+    }
+}
+
+fn delete_project(project: &str) {
+    let mut db = load_projects_db();
+    if let Some(project_info) = db.projects.remove(project) {
+        save_projects_db(&db);
+        println!("Project '{}' deleted from database successfully.", project);
+
+        // Assuming project_info has a field containing the path of the project
+        let project_path = Path::new(&project_info.project_path);
+        
+        // Check if the project path exists and delete it
+        if project_path.exists() {
+            if let Err(err) = fs::remove_dir_all(project_path) {
+                println!("Failed to delete project '{}': {}", project, err);
+            } else {
+                println!("Project '{}' deleted from system successfully.", project);
+            }
+        } else {
+            println!("Project '{}' path not found.", project);
+        }
+    } else {
+        println!("Project '{}' not found in database.", project);
     }
 }
 
@@ -358,7 +394,31 @@ fn list_manager(argument: &str) {
                     println!("{}", license_name.to_string_lossy());
                 }
             }
-        }
+        },
+        "projects" => {
+            let db = load_projects_db();
+            for (project_name, info) in db.projects.iter() {
+                println!("{}: {}", project_name, info.project_path);
+            }
+        },
+        "preferences" => {
+            let config = read_config_from();
+            println!(" ");
+            println!("Git Flag: {}", config.default_flags.git);
+            println!("Ignore Flag: {}", config.default_flags.ignore);
+            println!("Venv Flag: {}", config.default_flags.venv);
+            println!("License Flag: {}", config.default_flags.license);
+            println!("Readme Flag: {}", config.default_flags.readme);
+            println!("Tests Flag: {}", config.default_flags.tests);
+            println!("Docs Flag: {}", config.default_flags.docs);
+            println!("Docker Flag: {}", config.default_flags.docker);
+            println!(" ");
+            println!("Editor: {}", config.preferences.editor);
+            println!("License: {}", config.preferences.license);
+            println!(" ");
+            println!("Use 'upm config defaults <flag_to_toggle>' or 'upm config editor/license <editor/license_name>' to modify preferences.");
+            println!(" ");
+        },
         _ => {println!("Unsupported argument '{}'.", argument);}
     }
 }
