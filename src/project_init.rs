@@ -1,9 +1,10 @@
 use std::path::Path;
 use std::process::Command;
 use std::fs::{self};
-use std::io::{Write};
+use std::io::{self, Write};
+use std::env;
 
-use crate::project_database::{add_project_to_db};
+use crate::project_database::{add_project_to_db, load_projects_db};
 use crate::util::{clean_path};
 use crate::config::{read_config_from};
 
@@ -141,6 +142,54 @@ fn initialize_documents(project_path: &Path, license: bool, readme: bool, tests:
         initialize_docker(project_path);
     }
 }
+
+
+pub fn init_project(project_language: Option<&str>, project_main: Option<&str>) {
+    let current_dir = env::current_dir().unwrap();
+    let current_dir_str = clean_path(&current_dir);
+    let db = load_projects_db();
+
+    if db.projects.iter().any(|(_key, value)| current_dir_str.starts_with(&value.project_path)) {
+        println!("This directory is already recognized as a UPM project.");
+        return;
+    }
+
+    let project_language = match project_language {
+        Some(lang) => lang.to_string(),
+        None => {
+            let mut input = String::new();
+            println!("Enter the project language (e.g., python, rust, cpp):");
+            io::stdin().read_line(&mut input).expect("Failed to read line");
+            input.trim().to_string()
+        },
+    };
+
+    let project_main = match project_main {
+        Some(main) => main.to_string(),
+        None => {
+            let mut input = String::new();
+            loop {
+                println!("Enter the relative path to the main file to run (e.g., src/main.py):");
+                io::stdout().flush().expect("Failed to flush stdout");
+                input.clear();
+                io::stdin().read_line(&mut input).expect("Failed to read line");
+                let input = input.trim();
+                let main_file_path = current_dir.join(input);
+
+                if main_file_path.exists() {
+                    break input.to_string();
+                } else {
+                    println!("The file '{}' does not exist. Please enter a valid path.", input);
+                }
+            }
+        },
+    };
+
+    add_project_to_db(current_dir.file_name().unwrap().to_str().unwrap(), &current_dir_str, &project_language, &project_main);
+    println!("Initialized '{}' as a UPM project with language '{}' and main file '{}'.", current_dir.file_name().unwrap().to_str().unwrap(), project_language, project_main);
+}
+
+
 
 fn create_cpp_project(project_name: &str, git: bool, ignore: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     println!("Initializing C++ project...");
