@@ -2,6 +2,7 @@ use crate::config::read_config_from;
 use crate::project_database::load_projects_db;
 use std::fs;
 use std::path::Path;
+
 pub fn list_manager(argument: &str) {
     match argument {
         "editors" => {
