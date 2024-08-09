@@ -32,7 +32,7 @@ pub fn create_project(project_name: &str, project_language: &str, git: bool, ign
         "cpp" | "c++" => "./src/main.cpp",
         "c" => "./src/main.c",
         "rust" | "rs" => "./src/main.rs",
-        "javascript" => "./src/main.js",
+        "javascript" => "./index.js",
         "java" => "./src/Main.java",
         "cs" | "c#" => "./src/Program.cs",
         "react" => "./src/App.js", 
@@ -306,16 +306,26 @@ fn create_javascript_project(project_name: &str, git: bool, ignore: bool, licens
         return;
     }
 
-    fs::create_dir_all(&root_path).expect("Failed to create project directories");
+    fs::create_dir_all(root_path).expect("Failed to create project directories");
+    fs::create_dir_all(root_path.join("src")).expect("Failed to create src directory");
 
-    let mut index_js = fs::File::create(root_path.join("index.js")).expect("Failed to create index.js");
-    writeln!(index_js, "console.log('Hello, World!');").expect("Failed to write to index.js");
+    let main_js_path = root_path.join("src").join("main.js");
+    let mut main_js = fs::File::create(&main_js_path).expect("Failed to create main.js");
+    writeln!(main_js, "console.log('Hello, World!');").expect("Failed to write to main.js");
 
-    Command::new("npm")
+    let output = Command::new("C:\\Program Files\\nodejs\\npm.cmd")
         .args(&["init", "-y"])
         .current_dir(&root_path)
-        .status()
+        .output()
         .expect("Failed to initialize npm project");
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        println!("npm init -y failed with error: {}", stderr);
+    } else {
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        println!("npm init -y succeeded with output: {}", stdout);
+    }
 
     initialize_git(root_path, git, ignore);
     initialize_documents(root_path, license, readme, tests, docs, docker);

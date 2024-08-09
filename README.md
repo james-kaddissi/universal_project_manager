@@ -101,3 +101,14 @@ upm list <ARGUMENT_> - lists details about the argument:
 *upm delete optional_name - deletes the current directory and removes from project list or deletes the name of the upm project supplied.*
 
 determine a finalize list of supported languages.
+
+
+These languages are tested working for project creation and running on Windows:
+
+Ruby
+
+HTML
+
+C#
+
+Python
