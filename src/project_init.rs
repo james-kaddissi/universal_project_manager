@@ -330,15 +330,17 @@ fn create_ruby_project(project_name: &str, git: bool, ignore: bool, license: boo
         return;
     }
 
-    fs::create_dir_all(&root_path).expect("Failed to create project directories");
+    fs::create_dir_all(root_path.join("src")).expect("Failed to create project directories");
 
-    let mut main_rb = fs::File::create(root_path.join("main.rb")).expect("Failed to create main.rb");
+    let main_rb_path = root_path.join("src").join("main.rb");
+    let mut main_rb = fs::File::create(&main_rb_path).expect("Failed to create main.rb");
     writeln!(main_rb, "puts 'Hello, World!'").expect("Failed to write to main.rb");
 
     initialize_git(root_path, git, ignore);
     initialize_documents(root_path, license, readme, tests, docs, docker);
     println!("Project {} created successfully.", project_name);
 }
+
 
 fn create_cs_project(project_name: &str, git: bool, ignore: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     println!("Initializing C# project...");
