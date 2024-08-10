@@ -186,7 +186,7 @@ pub fn run_project() {
                 }
             },
             "react" => {
-                if let Err(e) = Command::new("npm").arg("start").current_dir(&info.project_path).status() {
+                if let Err(e) = Command::new("C:\\Program Files\\nodejs\\npm.cmd").arg("start").current_dir(&info.project_path).status() {
                     eprintln!("Failed to start React app: {}", e);
                 }
             },

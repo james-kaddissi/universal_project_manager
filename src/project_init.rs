@@ -20,6 +20,7 @@ pub fn create_project(project_name: &str, project_language: &str, git: bool, ign
         "html" => create_html_project(project_name, git, ignore, license, readme, tests, docs, docker),
         "react" => create_react_project(project_name, git, ignore, license, readme, tests, docs, docker),
         "java" => create_java_project(project_name, git, ignore, license, readme, tests, docs, docker),
+        "js" => create_javascript_project(project_name, git, ignore, license, readme, tests, docs, docker),
         "javascript" => create_javascript_project(project_name, git, ignore, license, readme, tests, docs, docker),
         "ruby" => create_ruby_project(project_name, git, ignore, license, readme, tests, docs, docker),
         "cs" => create_cs_project(project_name, git, ignore, license, readme, tests, docs, docker),
@@ -267,14 +268,11 @@ fn create_html_project(project_name: &str, git: bool, ignore: bool, license: boo
 fn create_react_project(project_name: &str, git: bool, ignore: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     println!("Initializing React project...");
     let root_path = Path::new(project_name);
-    Command::new("npx")
+    Command::new("C:\\Program Files\\nodejs\\npx.cmd")
         .args(&["create-react-app", project_name])
         .status()
         .expect("Failed to create React project");
 
-    if git && ignore {
-        println!("React project initialized with git and .gitignore by default.");
-    }
     initialize_documents(root_path, license, readme, tests, docs, docker);
     println!("Project {} created successfully.", project_name);
 }

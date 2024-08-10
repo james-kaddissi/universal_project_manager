@@ -102,7 +102,6 @@ upm list <ARGUMENT_> - lists details about the argument:
 
 determine a finalize list of supported languages.
 
-
 These languages are tested working for project creation and running on Windows:
 
 Ruby
@@ -112,3 +111,57 @@ HTML
 C#
 
 Python
+
+Java
+
+C
+
+C++
+
+Javascript
+
+React
+
+Thes languages need to be added:
+
+SQL
+
+ASM
+
+PHP
+
+R
+
+Go
+
+Swift
+
+Perl
+
+Obj-C
+
+Pascal
+
+Kotlin
+
+TypeScript
+
+Scala
+
+Shell
+
+Dart
+
+Groovy
+
+Haskell
+
+Erlang
+
+COBOL
+
+Fortran
+
+Lisp
+
+Lua
