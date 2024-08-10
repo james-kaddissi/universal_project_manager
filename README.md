@@ -126,6 +126,8 @@ React
 
 Go
 
+Swift
+
 Thes languages need to be added:
 
 SQL
@@ -135,8 +137,6 @@ ASM
 PHP
 
 R
-
-Swift
 
 Perl
 

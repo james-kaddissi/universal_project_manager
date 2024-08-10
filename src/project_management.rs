@@ -1,7 +1,8 @@
 use std::process::{Command, Stdio};
 use std::path::Path;
 use crate::project_database::{load_projects_db, save_projects_db};
-use crate::clean_path;
+use crate::config::read_config_from;
+use crate::util::clean_path;
 use std::env;
 use std::fs;
 
@@ -32,6 +33,7 @@ pub fn delete_project(project: &str) {
 
 pub fn open_project(project: &str) {
     let db = load_projects_db();
+    let config = read_config_from();
 
     if let Some(project_info) = db.projects.get(project) {
         let project_path = &project_info.project_path;
@@ -54,6 +56,7 @@ pub fn open_project(project: &str) {
                 .arg("/C")
                 .arg(&script_path)
                 .arg(project_path)
+                .arg(config.preferences.open_command)
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit())
                 .status()
@@ -61,6 +64,7 @@ pub fn open_project(project: &str) {
             Command::new("sh")
                 .arg("-c")
                 .arg(format!("{} {}", script_path.display(), project_path))
+                .arg(config.preferences.open_command)
                 .stdout(Stdio::inherit())
                 .stderr(Stdio::inherit())
                 .status()
@@ -131,6 +135,11 @@ pub fn run_project() {
                     }
                 } else {
                     eprintln!("Failed to compile.");
+                }
+            },
+            "swift" => {
+                if let Err(e) = Command::new("swift").args(&["run"]).status() {
+                    eprintln!("Failed to execute Swift project: {}", e);
                 }
             },
             "c"=> {

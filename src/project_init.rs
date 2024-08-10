@@ -28,6 +28,7 @@ pub fn create_project(project_name: &str, project_language: &str, git: bool, ign
         "ruby" => create_ruby_project(project_name, git, ignore, license, readme, tests, docs, docker),
         "cs" => create_cs_project(project_name, git, ignore, license, readme, tests, docs, docker),
         "c#" => create_cs_project(project_name, git, ignore, license, readme, tests, docs, docker),
+        "swift" => create_swift_project(project_name, git, ignore, license, readme, tests, docs, docker),
         _ => println!("Unsupported project language."),
     }
 
@@ -44,6 +45,7 @@ pub fn create_project(project_name: &str, project_language: &str, git: bool, ign
         "react" => "./src/App.js", 
         "ruby" => "./src/main.rb",
         "html" => "./src/index.html",
+        "swift" => "./Sources/main.swift",
         _ => "./src/main.txt",
     };
 
@@ -278,6 +280,56 @@ fn create_go_project(project_name: &str, git: bool, ignore: bool, license: bool,
 
     initialize_git(root_path, git, ignore);
     initialize_documents(root_path, license, readme, tests, docs, docker);
+    println!("Project {} created successfully.", project_name);
+}
+
+fn create_swift_project(project_name: &str, git: bool, ignore: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
+    println!("Initializing Swift project...");
+    let root_path = Path::new(project_name);
+
+    // Create the project directory if it doesn't exist
+    if let Err(e) = fs::create_dir_all(&root_path) {
+        eprintln!("Failed to create project directory: {:?}", e);
+        return;
+    }
+
+    // Initialize the Swift package
+    if let Err(e) = Command::new("swift")
+        .args(&["package", "init", "--type", "executable"])
+        .current_dir(&root_path)
+        .status()
+    {
+        eprintln!("Failed to create Swift project with Swift Package Manager: {:?}", e);
+        return;
+    }
+
+    let sources_path = root_path.join("Sources").join(project_name);
+    let main_swift_path = sources_path.join("main.swift");
+
+    if let Err(e) = fs::create_dir_all(&sources_path) {
+        eprintln!("Failed to create source directory: {:?}", e);
+        return;
+    }
+
+    if let Err(e) = fs::File::create(&main_swift_path)
+        .and_then(|mut file| writeln!(file, "import Foundation\n\nprint(\"Hello, World!\")"))
+    {
+        eprintln!("Failed to write to main.swift: {:?}", e);
+        return;
+    }
+
+    if git && ignore {
+        let gitignore_path = root_path.join(".gitignore");
+        let gitignore_content = ".build/\n*.xcodeproj\n*.xcworkspace\n*.xcuserstate\n*.swiftpm/xcode\n";
+        if let Err(e) = fs::write(&gitignore_path, gitignore_content) {
+            eprintln!("Failed to create .gitignore: {:?}", e);
+            return;
+        }
+        println!("Created .gitignore");
+    }
+
+    initialize_documents(root_path, license, readme, tests, docs, docker);
+
     println!("Project {} created successfully.", project_name);
 }
 

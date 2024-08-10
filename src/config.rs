@@ -30,6 +30,7 @@ pub struct DefaultFlags {
 pub struct Preferences {
     pub editor: String,
     pub license: String,
+    pub open_command: String,
 }
 
 pub fn read_config_from() -> Config {
