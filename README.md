@@ -120,7 +120,11 @@ C++
 
 Javascript
 
+TypeScript
+
 React
+
+Go
 
 Thes languages need to be added:
 
@@ -132,8 +136,6 @@ PHP
 
 R
 
-Go
-
 Swift
 
 Perl
@@ -143,8 +145,6 @@ Obj-C
 Pascal
 
 Kotlin
-
-TypeScript
 
 Scala
 

@@ -22,6 +22,7 @@ pub fn create_project(project_name: &str, project_language: &str, git: bool, ign
         "java" => create_java_project(project_name, git, ignore, license, readme, tests, docs, docker),
         "js" => create_javascript_project(project_name, git, ignore, license, readme, tests, docs, docker),
         "javascript" => create_javascript_project(project_name, git, ignore, license, readme, tests, docs, docker),
+        "go" => create_go_project(project_name, git, ignore, license, readme, tests, docs, docker),
         "ts" => create_typescript_project(project_name, git, ignore, license, readme, tests, docs, docker),
         "typescript" => create_typescript_project(project_name, git, ignore, license, readme, tests, docs, docker),
         "ruby" => create_ruby_project(project_name, git, ignore, license, readme, tests, docs, docker),
@@ -39,6 +40,7 @@ pub fn create_project(project_name: &str, project_language: &str, git: bool, ign
         "typescript" | "ts" => "./src/main.ts",
         "java" => "./src/Main.java",
         "cs" | "c#" => "./src/Program.cs",
+        "go" => "./main.go",
         "react" => "./src/App.js", 
         "ruby" => "./src/main.rb",
         "html" => "./src/index.html",
@@ -247,6 +249,38 @@ fn create_rust_project(project_name: &str, git: bool, ignore: bool, license: boo
     println!("Project {} created successfully.", project_name);
 }
 
+fn create_go_project(project_name: &str, git: bool, ignore: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
+    println!("Initializing Go project...");
+    let root_path = Path::new(project_name);
+    if root_path.exists() {
+        println!("Project {} already exists.", project_name);
+        return;
+    }
+
+    fs::create_dir_all(root_path).expect("Failed to create project directories");
+
+    let mut main_go = fs::File::create(root_path.join("main.go")).expect("Failed to create main.go");
+    writeln!(main_go, "package main\n\nimport \"fmt\"\n\nfunc main() {{\n    fmt.Println(\"Hello, World!\")\n}}").expect("Failed to write to main.go");
+
+    let output = Command::new("go")
+        .args(&["mod", "init", project_name])
+        .current_dir(&root_path)
+        .output()
+        .expect("Failed to initialize Go module");
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        println!("go mod init failed with error: {}", stderr);
+    } else {
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        println!("go mod init succeeded with output: {}", stdout);
+    }
+
+    initialize_git(root_path, git, ignore);
+    initialize_documents(root_path, license, readme, tests, docs, docker);
+    println!("Project {} created successfully.", project_name);
+}
+
 fn create_html_project(project_name: &str, git: bool, ignore: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     println!("Initializing HTML project...");
     let root_path = Path::new(project_name);
@@ -265,8 +299,6 @@ fn create_html_project(project_name: &str, git: bool, ignore: bool, license: boo
     initialize_documents(root_path, license, readme, tests, docs, docker);
     println!("Project {} created successfully.", project_name);
 }
-
-
 
 fn create_react_project(project_name: &str, git: bool, ignore: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     println!("Initializing React project...");

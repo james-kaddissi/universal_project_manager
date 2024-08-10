@@ -189,6 +189,11 @@ pub fn run_project() {
                     eprintln!("Failed to execute TypeScript project: {}", e);
                 }
             }
+            "go" => {
+                if let Err(e) = Command::new("go").args(&["run", script_path_str]).status() {
+                    eprintln!("Failed to execute Go project: {}", e);
+                }
+            }
             "cs" | "c#" => {
                 if let Err(e) = Command::new("dotnet").arg("run").current_dir(&info.project_path).status() {
                     eprintln!("Failed to execute C# project: {}", e);
