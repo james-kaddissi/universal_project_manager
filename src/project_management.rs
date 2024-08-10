@@ -175,11 +175,20 @@ pub fn run_project() {
                     eprintln!("Failed to compile.");
                 }
             },
-            "javascript" => {
+            "js" | "javascript" => {
                 if let Err(e) = Command::new("node").arg(script_path_str).status() {
                     eprintln!("Failed to execute JavaScript project: {}", e);
                 }
             },
+            "ts" | "typescript" => {
+                if let Err(e) = Command::new("C:\\Program Files\\nodejs\\npx.cmd").args(&["tsc"]).status() {
+                    eprintln!("Failed to compile TypeScript: {}", e);
+                    return;
+                }
+                if let Err(e) = Command::new("node").arg(script_path_str).status() {
+                    eprintln!("Failed to execute TypeScript project: {}", e);
+                }
+            }
             "cs" | "c#" => {
                 if let Err(e) = Command::new("dotnet").arg("run").current_dir(&info.project_path).status() {
                     eprintln!("Failed to execute C# project: {}", e);

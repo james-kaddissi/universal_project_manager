@@ -22,6 +22,8 @@ pub fn create_project(project_name: &str, project_language: &str, git: bool, ign
         "java" => create_java_project(project_name, git, ignore, license, readme, tests, docs, docker),
         "js" => create_javascript_project(project_name, git, ignore, license, readme, tests, docs, docker),
         "javascript" => create_javascript_project(project_name, git, ignore, license, readme, tests, docs, docker),
+        "ts" => create_typescript_project(project_name, git, ignore, license, readme, tests, docs, docker),
+        "typescript" => create_typescript_project(project_name, git, ignore, license, readme, tests, docs, docker),
         "ruby" => create_ruby_project(project_name, git, ignore, license, readme, tests, docs, docker),
         "cs" => create_cs_project(project_name, git, ignore, license, readme, tests, docs, docker),
         "c#" => create_cs_project(project_name, git, ignore, license, readme, tests, docs, docker),
@@ -33,7 +35,8 @@ pub fn create_project(project_name: &str, project_language: &str, git: bool, ign
         "cpp" | "c++" => "./src/main.cpp",
         "c" => "./src/main.c",
         "rust" | "rs" => "./src/main.rs",
-        "javascript" => "./index.js",
+        "javascript" | "js" => "./src/main.js",
+        "typescript" | "ts" => "./src/main.ts",
         "java" => "./src/Main.java",
         "cs" | "c#" => "./src/Program.cs",
         "react" => "./src/App.js", 
@@ -324,6 +327,59 @@ fn create_javascript_project(project_name: &str, git: bool, ignore: bool, licens
         let stdout = String::from_utf8_lossy(&output.stdout);
         println!("npm init -y succeeded with output: {}", stdout);
     }
+
+    initialize_git(root_path, git, ignore);
+    initialize_documents(root_path, license, readme, tests, docs, docker);
+    println!("Project {} created successfully.", project_name);
+}
+
+fn create_typescript_project(project_name: &str, git: bool, ignore: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
+    println!("Initializing TypeScript project...");
+    let root_path = Path::new(project_name);
+    if root_path.exists() {
+        println!("Project {} already exists.", project_name);
+        return;
+    }
+
+    fs::create_dir_all(root_path).expect("Failed to create project directories");
+    fs::create_dir_all(root_path.join("src")).expect("Failed to create src directory");
+
+    let main_ts_path = root_path.join("src").join("main.ts");
+    let mut main_ts = fs::File::create(&main_ts_path).expect("Failed to create main.ts");
+    writeln!(main_ts, "console.log('Hello, TypeScript!');").expect("Failed to write to main.ts");
+
+    let output = Command::new("C:\\Program Files\\nodejs\\npm.cmd")
+        .args(&["init", "-y"])
+        .current_dir(&root_path)
+        .output()
+        .expect("Failed to initialize npm project");
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        println!("npm init -y failed with error: {}", stderr);
+    } else {
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        println!("npm init -y succeeded with output: {}", stdout);
+    }
+
+    // Install TypeScript and create tsconfig.json
+    let output = Command::new("C:\\Program Files\\nodejs\\npm.cmd")
+        .args(&["install", "typescript", "--save-dev"])
+        .current_dir(&root_path)
+        .output()
+        .expect("Failed to install TypeScript");
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        println!("npm install typescript failed with error: {}", stderr);
+    } else {
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        println!("npm install typescript succeeded with output: {}", stdout);
+    }
+
+    let tsconfig_path = root_path.join("tsconfig.json");
+    let mut tsconfig = fs::File::create(&tsconfig_path).expect("Failed to create tsconfig.json");
+    writeln!(tsconfig, r#"{{"compilerOptions": {{"target": "es6", "module": "commonjs"}}}}"#).expect("Failed to write to tsconfig.json");
 
     initialize_git(root_path, git, ignore);
     initialize_documents(root_path, license, readme, tests, docs, docker);
