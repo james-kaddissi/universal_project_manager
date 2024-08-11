@@ -232,6 +232,9 @@ pub fn run_project() {
                 #[cfg(windows)]
                 println!("Shell scripts are not supported on Windows.");
             },
+            "r" => {
+                println!("Open the R script in RStudio or R interpreter.");
+            }
             "html" => {
                 // Typically, HTML files are opened in a web browser. This example uses the `xdg-open` command on Unix-like systems or `start` on Windows.
                 if cfg!(target_os = "windows") {

@@ -31,6 +31,7 @@ pub fn create_project(project_name: &str, project_language: &str, git: bool, ign
         "swift" => create_swift_project(project_name, git, ignore, license, readme, tests, docs, docker),
         "dart" => create_dart_project(project_name, git, ignore, license, readme, tests, docs, docker),
         "shell" => create_shell_project(project_name, git, ignore, license, readme, tests, docs, docker),
+        "r" => create_r_project(project_name, git, ignore, license, readme, tests, docs, docker),
         _ => println!("Unsupported project language."),
     }
 
@@ -50,6 +51,7 @@ pub fn create_project(project_name: &str, project_language: &str, git: bool, ign
         "swift" => "./Sources/main.swift",
         "dart" => "./lib/main.dart",
         "shell" => "/main.sh",
+        "r" => "./main.R",
         _ => "./src/main.txt",
     };
 
@@ -275,6 +277,25 @@ fn create_rust_project(project_name: &str, git: bool, ignore: bool, license: boo
         fs::write(gitignore_path, gitignore_content).expect("Failed to create .gitignore");
         println!("Created .gitignore");
     }
+    initialize_documents(root_path, license, readme, tests, docs, docker);
+    println!("Project {} created successfully.", project_name);
+}
+
+fn create_r_project(project_name: &str, git: bool, ignore: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
+    println!("Initializing R project...");
+    let root_path = Path::new(project_name);
+    if root_path.exists() {
+        println!("Project {} already exists.", project_name);
+        return;
+    }
+
+    fs::create_dir_all(root_path).expect("Failed to create project directories");
+
+    let main_r_path = root_path.join("main.R");
+    let mut main_r = File::create(&main_r_path).expect("Failed to create main.R");
+    writeln!(main_r, "# This is the main R script\n\nprint('Hello, World!')").expect("Failed to write to main.R");
+
+    initialize_git(root_path, git, ignore);
     initialize_documents(root_path, license, readme, tests, docs, docker);
     println!("Project {} created successfully.", project_name);
 }
