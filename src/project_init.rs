@@ -30,6 +30,7 @@ pub fn create_project(project_name: &str, project_language: &str, git: bool, ign
         "c#" => create_cs_project(project_name, git, ignore, license, readme, tests, docs, docker),
         "swift" => create_swift_project(project_name, git, ignore, license, readme, tests, docs, docker),
         "dart" => create_dart_project(project_name, git, ignore, license, readme, tests, docs, docker),
+        "shell" => create_shell_project(project_name, git, ignore, license, readme, tests, docs, docker),
         _ => println!("Unsupported project language."),
     }
 
@@ -48,6 +49,7 @@ pub fn create_project(project_name: &str, project_language: &str, git: bool, ign
         "html" => "./src/index.html",
         "swift" => "./Sources/main.swift",
         "dart" => "./lib/main.dart",
+        "shell" => "/main.sh",
         _ => "./src/main.txt",
     };
 
@@ -198,9 +200,33 @@ pub fn init_project(project_language: Option<&str>, project_main: Option<&str>) 
     add_project_to_db(current_dir.file_name().unwrap().to_str().unwrap(), &current_dir_str, &project_language, &project_main);
     println!("Initialized '{}' as a UPM project with language '{}' and main file '{}'.", current_dir.file_name().unwrap().to_str().unwrap(), project_language, project_main);
 }
+fn create_shell_project(project_name: &str, git: bool, ignore: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
+    println!("Initializing Shell project...");
+    let root_path = Path::new(project_name);
+    if root_path.exists() {
+        println!("Project {} already exists.", project_name);
+        return;
+    }
 
+    fs::create_dir_all(root_path).expect("Failed to create project directories");
 
+    let main_sh_path = root_path.join("main.sh");
+    let mut main_sh = File::create(&main_sh_path).expect("Failed to create main.sh");
+    writeln!(main_sh, "#!/bin/bash\n\n# Entry point\n\necho 'Hello, World!'").expect("Failed to write to main.sh");
 
+    // Note: Setting permissions specific to Unix; skipping on Windows
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let mut permissions = fs::metadata(&main_sh_path).expect("Failed to get file metadata").permissions();
+        permissions.set_mode(0o755);
+        fs::set_permissions(&main_sh_path, permissions).expect("Failed to set permissions for main.sh");
+    }
+
+    initialize_git(root_path, git, ignore);
+    initialize_documents(root_path, license, readme, tests, docs, docker);
+    println!("Project {} created successfully.", project_name);
+}
 fn create_cpp_project(project_name: &str, git: bool, ignore: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
     println!("Initializing C++ project...");
     let root_path = Path::new(project_name);

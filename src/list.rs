@@ -97,9 +97,7 @@ pub fn list_manager(argument: &str) {
             println!("9. Ruby");
             println!("10. Swift");
             println!("11. Dart");
-            println!("12. PHP");
             println!("13. HTML");
-            println!("14. SQL");
             println!("15. Shell");
             println!("16. C#");
             println!("17. R");

@@ -223,6 +223,15 @@ pub fn run_project() {
                     eprintln!("Failed to execute Ruby script: {}", e);
                 }
             },
+            "shell" => {
+                #[cfg(unix)]
+                if let Err(e) = Command::new("sh").arg(script_path_str).status() {
+                    eprintln!("Failed to execute shell script: {}", e);
+                }
+
+                #[cfg(windows)]
+                println!("Shell scripts are not supported on Windows.");
+            },
             "html" => {
                 // Typically, HTML files are opened in a web browser. This example uses the `xdg-open` command on Unix-like systems or `start` on Windows.
                 if cfg!(target_os = "windows") {
