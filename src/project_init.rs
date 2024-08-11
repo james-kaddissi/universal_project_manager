@@ -1,6 +1,6 @@
 use std::path::Path;
 use std::process::Command;
-use std::fs::{self};
+use std::fs::{self, File};
 use std::io::{self, Write};
 use std::env;
 
@@ -29,6 +29,7 @@ pub fn create_project(project_name: &str, project_language: &str, git: bool, ign
         "cs" => create_cs_project(project_name, git, ignore, license, readme, tests, docs, docker),
         "c#" => create_cs_project(project_name, git, ignore, license, readme, tests, docs, docker),
         "swift" => create_swift_project(project_name, git, ignore, license, readme, tests, docs, docker),
+        "dart" => create_dart_project(project_name, git, ignore, license, readme, tests, docs, docker),
         _ => println!("Unsupported project language."),
     }
 
@@ -46,6 +47,7 @@ pub fn create_project(project_name: &str, project_language: &str, git: bool, ign
         "ruby" => "./src/main.rb",
         "html" => "./src/index.html",
         "swift" => "./Sources/main.swift",
+        "dart" => "./lib/main.dart",
         _ => "./src/main.txt",
     };
 
@@ -410,6 +412,40 @@ fn create_javascript_project(project_name: &str, git: bool, ignore: bool, licens
     } else {
         let stdout = String::from_utf8_lossy(&output.stdout);
         println!("npm init -y succeeded with output: {}", stdout);
+    }
+
+    initialize_git(root_path, git, ignore);
+    initialize_documents(root_path, license, readme, tests, docs, docker);
+    println!("Project {} created successfully.", project_name);
+}
+
+fn create_dart_project(project_name: &str, git: bool, ignore: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
+    println!("Initializing Dart project...");
+    let root_path = Path::new(project_name);
+    if root_path.exists() {
+        println!("Project {} already exists.", project_name);
+        return;
+    }
+
+    fs::create_dir_all(root_path).expect("Failed to create project directories");
+    fs::create_dir_all(root_path.join("lib")).expect("Failed to create lib directory");
+
+    let main_dart_path = root_path.join("lib").join("main.dart");
+    let mut main_dart = File::create(&main_dart_path).expect("Failed to create main.dart");
+    writeln!(main_dart, "void main() {{\n    print('Hello, World!');\n}}").expect("Failed to write to main.dart");
+
+    let output = Command::new("dart")
+        .args(&["create", "."])
+        .current_dir(&root_path)
+        .output()
+        .expect("Failed to initialize Dart project");
+
+    if !output.status.success() {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        println!("dart create . failed with error: {}", stderr);
+    } else {
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        println!("dart create . succeeded with output: {}", stdout);
     }
 
     initialize_git(root_path, git, ignore);

@@ -218,6 +218,11 @@ pub fn run_project() {
                     eprintln!("Failed to execute Ruby script: {}", e);
                 }
             },
+            "dart" => {
+                if let Err(e) = Command::new("dart").arg("run").arg(script_path_str).status() {
+                    eprintln!("Failed to execute Ruby script: {}", e);
+                }
+            },
             "html" => {
                 // Typically, HTML files are opened in a web browser. This example uses the `xdg-open` command on Unix-like systems or `start` on Windows.
                 if cfg!(target_os = "windows") {
