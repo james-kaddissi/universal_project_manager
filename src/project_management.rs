@@ -234,7 +234,11 @@ pub fn run_project() {
             },
             "r" => {
                 println!("Open the R script in RStudio or R interpreter.");
-            }
+            },
+
+            "scala" => {
+                println!("Open the Scala script in SBT.");
+            },
             "html" => {
                 // Typically, HTML files are opened in a web browser. This example uses the `xdg-open` command on Unix-like systems or `start` on Windows.
                 if cfg!(target_os = "windows") {
