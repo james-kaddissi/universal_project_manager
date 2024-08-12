@@ -346,6 +346,7 @@ fn create_shell_project(
     initialize_documents(root_path, license, readme, tests, docs, docker);
     println!("Project {} created successfully.", project_name);
 }
+
 fn create_cpp_project(
     project_name: &str,
     git: bool,

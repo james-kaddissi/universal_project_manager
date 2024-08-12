@@ -103,12 +103,7 @@ pub fn list_manager(argument: &str) {
             println!("17. R");
             println!("18. Scala");
             println!("19. Perl");
-            println!("20. Lua");
-            println!("21. Groovy");
             println!("22. React");
-            println!("23. Haskell");
-            println!("24. Erlang");
-            println!("25. MATLAB");
             println!(" ");
         },
         _ => {println!("Unsupported argument '{}'.", argument);}

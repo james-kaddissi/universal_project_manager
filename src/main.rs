@@ -216,6 +216,7 @@ fn main() {
             add_package(package_name);
         },
         Some(("run", _)) => {
+            println!("MASSIVE");
             run_project();
         },
         Some(("script", sub_m)) => {
