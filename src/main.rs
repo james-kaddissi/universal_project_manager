@@ -23,7 +23,7 @@ use crate::list::{list_manager};
 
 fn main() {
     let config = read_config_from();
-    let matches = ClapCommand::new("upm")
+    let matches = ClapCommand::new("upman")
         .version("0.1.2")
         .about("Manages programming projects")
         .subcommand(
