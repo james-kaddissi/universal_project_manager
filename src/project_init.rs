@@ -107,6 +107,8 @@ pub fn create_project(
         "r" => create_r_project(project_name, git, ignore, license, readme, tests, docs, docker),
         "scala" =>
             create_scala_project(project_name, git, ignore, license, readme, tests, docs, docker),
+        "perl" =>
+            create_perl_project(project_name, git, ignore, license, readme, tests, docs, docker),
         _ => println!("Unsupported project language."),
     }
 
@@ -128,6 +130,7 @@ pub fn create_project(
         "shell" => "/main.sh",
         "r" => "./main.R",
         "scala" => "./src/main/scala/Main.scala",
+        "perl" => "./main.pl",
         _ => "./src/main.txt",
     };
 
@@ -514,6 +517,25 @@ fn create_r_project(
     writeln!(main_r, "# This is the main R script\n\nprint('Hello, World!')").expect(
         "Failed to write to main.R"
     );
+
+    initialize_git(root_path, git, ignore);
+    initialize_documents(root_path, license, readme, tests, docs, docker);
+    println!("Project {} created successfully.", project_name);
+}
+
+fn create_perl_project(project_name: &str, git: bool, ignore: bool, license: bool, readme: bool, tests: bool, docs: bool, docker: bool) {
+    println!("Initializing Perl project...");
+    let root_path = Path::new(project_name);
+    if root_path.exists() {
+        println!("Project {} already exists.", project_name);
+        return;
+    }
+
+    fs::create_dir_all(root_path).expect("Failed to create project directories");
+
+    let main_pl_path = root_path.join("main.pl");
+    let mut main_pl = File::create(&main_pl_path).expect("Failed to create main.pl");
+    writeln!(main_pl, "#!/usr/bin/perl\n\nprint 'Hello, World!';").expect("Failed to write to main.pl");
 
     initialize_git(root_path, git, ignore);
     initialize_documents(root_path, license, readme, tests, docs, docker);

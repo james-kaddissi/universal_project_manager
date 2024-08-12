@@ -239,6 +239,11 @@ pub fn run_project() {
             "scala" => {
                 println!("Open the Scala script in SBT.");
             },
+            "perl" => {
+                if let Err(e) = Command::new("perl").arg(script_path_str).status() {
+                    eprintln!("Failed to execute Perl script: {}", e);
+                }
+            },
             "html" => {
                 // Typically, HTML files are opened in a web browser. This example uses the `xdg-open` command on Unix-like systems or `start` on Windows.
                 if cfg!(target_os = "windows") {
