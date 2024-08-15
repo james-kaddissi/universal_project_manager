@@ -47,123 +47,24 @@ Rust
 
 Javascript
 
+TypeScript
+
 React/HTML
 
 Java
 
 Ruby
 
-MORE COMING SOON
-
-Everything i have to do:
-
-Lets break down every main command and what it should be in the final version:
-
-a. Additionally warn all non upm project upm init.
-
-b. Additionally always offer prompts if missing parameter.
-
-c. Additionally address the issue of user not having necessary technologies for a step like for example upm run but not having a certain compiler. Need to warn user and offer an easy fix or automatic installation on the first upm run if viable.
-
-d. Additionally adress the path issues using a constant string instead of automatic configuration.
-
-upm new - upm new should take in a language or optional alternate custom structure. For each language or custom structure a configurable template is used and created with the projects name. This command should take flags that can be toggleable on from project to project. Say you want docker in your project add --docker. You can set certain flags to always be true.
-
-upm template new - simply creates a new upm project from an alternate specified template.
-
-upm add - for whatever language you are using, if appropriate (so for C it wouldn't do anything because C doesn't have packages), it should find a package of that name, if it exists then install it into the project, and add it to any dependency logs if standard for that language (requirements.txt etc.).
-
-upm run <OPTIONAL_SCRIPT> - runs the main entry point of the project or the optional script path if provided, using the method of running a script for that language.
-
-*upm script -*
-
-*a. upm script save
-<src><src_script> <save_name> - saves the script at path src_script to the name save_name*</save_name></src_script></src>
-
-*b. upm script add <save_name> - adds the script saved under save_name (if it exists) to the current upm project (if in a upm project).*
-
-*upm init language_ main_ - Initializes the current root project as a upm project with the language and main path being passed as paramaters.*
-
-*upm open project_name - changes terminal directory to projects root and opens the root in the configured editor. project_name must be recognized as a upm project.* Finished but needs platform checks for Unix.
-
-upm list <ARGUMENT_> - lists details about the argument:
-
-*a. editors - lists supported text editors (configurable by upm config)*
-
-*b. templates - lists the names of all templates saved by your UPM (default + custom)* May need to remove README?
-
-*c. licenses - lists the names of all licenses saved by your UPM (default + custom)*
-
-*d. projects - lists the names of all projects with their relevant language/main/path info*
-
-*f. preferences - lists the preference configuration of your version.*
-
-*upm delete optional_name - deletes the current directory and removes from project list or deletes the name of the upm project supplied.*
-
-determine a finalize list of supported languages.
-
-These languages are tested working for project creation and running on Windows:
-
-Ruby
-
-HTML
-
-C#
-
-Python
-
-Java
-
-C
-
-C++
-
-Javascript
-
-TypeScript
-
-React
-
 Go
 
 Swift
 
-Thes languages need to be added:
-
-SQL
-
-ASM
-
-PHP
-
-R
-
-Perl
-
-Obj-C
-
-Pascal
-
-Kotlin
-
-Scala
+Dart
 
 Shell
 
-Dart
+R
 
-Groovy
+Scala
 
-Haskell
-
-Erlang
-
-COBOL
-
-Fortran
-
-Lisp
-
-Lua
-
-MATLAB
+Perl
