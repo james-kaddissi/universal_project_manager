@@ -12,3 +12,9 @@ docker = false
 editor = "vscode"
 license = "MIT"
 open_command = "code ."
+
+[warnings]
+creation = true
+init = true
+run = true
+add = true

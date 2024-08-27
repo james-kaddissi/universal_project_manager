@@ -12,6 +12,7 @@ const CONFIG_PATH: &str = "J:\\universal_project_manager\\upmconfig.toml";
 pub struct Config {
     pub default_flags: DefaultFlags,
     pub preferences: Preferences,
+    pub warnings: Warnings,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -30,7 +31,14 @@ pub struct DefaultFlags {
 pub struct Preferences {
     pub editor: String,
     pub license: String,
-    pub open_command: String,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct Warnings {
+    pub creation: bool,
+    pub init: bool,
+    pub run: bool,
+    pub add: bool,
 }
 
 pub fn read_config_from() -> Config {

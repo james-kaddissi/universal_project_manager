@@ -277,8 +277,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3354b9ac3fae1ff6755cb6db53683adb661634f67557942dea4facebec0fee4b"
 
 [[package]]
-name = "universal_project_manager"
-version = "0.1.2"
+name = "upman"
+version = "0.1.4"
 dependencies = [
  "clap",
  "regex",

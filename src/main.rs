@@ -209,13 +209,25 @@ fn main() {
             let tests = sub_m.contains_id("tests") || config.default_flags.tests;
             let docs = sub_m.contains_id("docs") || config.default_flags.docs;
             let docker = sub_m.contains_id("docker") || config.default_flags.docker;
+            if config.warnings.creation{
+                println!("Project creation requires the necessary dependencies to be installed. Errors may occur if you do not have the language installed.");
+                println!("To disable this warning run 'upman config warnings creation' to toggle the warning, or manually set it to false in the upmconfig.toml file.");
+            }
             create_project(project_name, project_language, git, ignore, venv, license, readme, tests, docs, docker);
         },
         Some(("add", sub_m)) => {
             let package_name = sub_m.get_one::<String>("PACKAGE_NAME").unwrap();
+            if config.warnings.add {
+                println!("Adding a package requires the necessary package manager for that language to be installed. Some languages may not have a package manager.");
+                println!("To disable this warning run 'upman config warnings add' to toggle the warning, or manually set it to false in the upmconfig.toml file.");
+            }
             add_package(package_name);
         },
         Some(("run", _)) => {
+            if config.warnings.run {
+                println!("Running a project requires the necessary dependencies to be installed. Errors may occur if you do not have the language or other necessary compilers/interpreters installed.");
+                println!("To disable this warning run 'upman config warnings run' to toggle the warning, or manually set it to false in the upmconfig.toml file.");
+            }
             run_project();
         },
         Some(("script", sub_m)) => {
@@ -236,6 +248,10 @@ fn main() {
         Some(("init", sub_m)) => {
             let project_language = sub_m.get_one::<String>("LANGUAGE");
             let project_main = sub_m.get_one::<String>("MAIN");
+            if config.warnings.run {
+                println!("Initializing a project requires the necessary dependencies to be installed. Errors may occur if you do not have the language installed.");
+                println!("To disable this warning run 'upman config warnings init' to toggle the warning, or manually set it to false in the upmconfig.toml file.");
+            }
             init_project(project_language.map(String::as_str), project_main.map(String::as_str));
         },
         Some(("config", sub_m)) => {
