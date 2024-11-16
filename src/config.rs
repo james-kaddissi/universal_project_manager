@@ -1,12 +1,9 @@
 use serde::{Serialize, Deserialize};
 use std::fs;
 use regex::Regex;
+use crate::util::get_install_path;
+use std::path::{PathBuf, Path};
 
-#[cfg(unix)]
-const CONFIG_PATH: &str = "/Users/james/WinDesktop/universal_project_manager/upmconfig.toml";
-
-#[cfg(windows)]
-const CONFIG_PATH: &str = "J:\\universal_project_manager\\upmconfig.toml";
 
 #[derive(Deserialize, Serialize)]
 pub struct Config {
@@ -41,17 +38,55 @@ pub struct Warnings {
     pub add: bool,
 }
 
+pub fn get_config_path() -> std::io::Result<PathBuf> {
+    let install_path = get_install_path()?;
+    let config_path = Path::new(&install_path).join("upmconfig.toml");
+
+    Ok(config_path)
+}
+
 pub fn read_config_from() -> Config {
-    let config_str = fs::read_to_string(CONFIG_PATH)
+    let config_path = get_config_path().expect("Failed to get config path");
+    
+    if !config_path.exists() {
+        eprintln!("Config file not found at: {}", config_path.display());
+        let default_config = Config {
+            default_flags: DefaultFlags {
+                git: false,
+                ignore: false,
+                venv: false,
+                license: false,
+                readme: false,
+                tests: false,
+                docs: false,
+                docker: false,
+            },
+            preferences: Preferences {
+                editor: "VS Code".to_string(),
+                license: "MIT".to_string(),
+            },
+            warnings: Warnings {
+                creation: true,
+                init: true,
+                run: true,
+                add: true,
+            },
+        };
+        write_config_to(&default_config);
+        return default_config;
+    }
+
+    let config_str = fs::read_to_string(config_path)
         .expect("Failed to read config file");
     toml::from_str(&config_str).expect("Failed to process config file")
 }
 
 fn write_config_to(config: &Config) {
+    let config_path = get_config_path().expect("Failed to get config path");
     let toml_str = toml::to_string_pretty(&config).expect("Failed to serialize to TOML");
-    if let Err(e) = fs::write(CONFIG_PATH, toml_str) {
+    
+    if let Err(e) = fs::write(config_path, toml_str) {
         eprintln!("Failed to write to config file: {}", e);
-        return;
     }
 }
 

@@ -1,29 +1,30 @@
 use std::fs;
 use std::path::Path;
 use std::env;
+use crate::util::get_install_path;
 
 pub fn delete_script(script_name: &str) {
-    // Get current directory
-    let current_dir = match env::current_dir() {
+    let install_path = match get_install_path() {
         Ok(path) => path,
         Err(err) => {
-            eprintln!("Failed to get current directory: {}", err);
+            eprintln!("Failed to get install path: {}", err);
             return;
         }
     };
 
-    // Locate scripts directory
-    let scripts_dir = current_dir.join("J:\\universal_project_manager\\scripts");
+    let scripts_dir = Path::new(&install_path).join("scripts");
 
-    // Iterate over files in scripts directory
+    if !scripts_dir.exists() {
+        eprintln!("Scripts directory not found: {}", scripts_dir.display());
+        return;
+    }
+
     for entry in fs::read_dir(&scripts_dir).unwrap() {
         let entry = entry.unwrap();
         let path = entry.path();
 
-        // Check if the file matches the script_name (without extension)
         if let Some(file_name) = path.file_stem() {
             if file_name == script_name {
-                // Delete the file
                 if let Err(err) = fs::remove_file(&path) {
                     eprintln!("Failed to delete script '{}': {}", script_name, err);
                     return;
@@ -38,29 +39,28 @@ pub fn delete_script(script_name: &str) {
     println!("Script '{}' not found.", script_name);
 }
 
-
-
 pub fn add_script(script_name: &str) {
-    let current_dir = match env::current_dir() {
+    let install_path = match get_install_path() {
         Ok(path) => path,
         Err(err) => {
-            eprintln!("Failed to get current directory: {}", err);
+            eprintln!("Failed to get install path: {}", err);
             return;
         }
     };
 
-    // Locate scripts directory
-    let scripts_dir = current_dir.join("J:\\universal_project_manager\\scripts");
+    let scripts_dir = Path::new(&install_path).join("scripts");
 
-    // Iterate over files in scripts directory
+    if !scripts_dir.exists() {
+        eprintln!("Scripts directory not found: {}", scripts_dir.display());
+        return;
+    }
+
     for entry in fs::read_dir(&scripts_dir).unwrap() {
         let entry = entry.unwrap();
         let path = entry.path();
 
-        // Check if the file matches the script_name (without extension)
         if let Some(file_name) = path.file_stem() {
             if file_name == script_name {
-                // Determine the extension of the file
                 let file_extension = match path.extension() {
                     Some(ext) => ext.to_string_lossy().into_owned(),
                     None => {
@@ -69,10 +69,8 @@ pub fn add_script(script_name: &str) {
                     }
                 };
 
-                // Construct the destination path in the current directory
-                let dest_path = current_dir.join(format!("{}.{}", script_name, file_extension));
+                let dest_path = Path::new(&install_path).join(format!("{}.{}", script_name, file_extension));
 
-                // Copy the script file to the current directory
                 match fs::copy(&path, &dest_path) {
                     Ok(_) => {
                         println!("Script '{}' added successfully to '{}'.", script_name, dest_path.display());
@@ -91,7 +89,6 @@ pub fn add_script(script_name: &str) {
 }
 
 pub fn save_script(script_name: &str, script_path: Option<&str>) {
-    // Ensure script_path is provided
     let script_path = match script_path {
         Some(path) => path,
         None => {
@@ -100,17 +97,15 @@ pub fn save_script(script_name: &str, script_path: Option<&str>) {
         }
     };
 
-    // Get current directory
-    let current_dir = match env::current_dir() {
+    let install_path = match get_install_path() {
         Ok(path) => path,
         Err(err) => {
-            eprintln!("Failed to get current directory: {}", err);
+            eprintln!("Failed to get install path: {}", err);
             return;
         }
     };
 
-    // Create a scripts directory if it doesn't exist
-    let scripts_dir = current_dir.join("J:\\universal_project_manager\\scripts");
+    let scripts_dir = Path::new(&install_path).join("scripts");
     if !scripts_dir.exists() {
         if let Err(err) = fs::create_dir_all(&scripts_dir) {
             eprintln!("Failed to create scripts directory: {}", err);
@@ -118,7 +113,6 @@ pub fn save_script(script_name: &str, script_path: Option<&str>) {
         }
     }
 
-    // Determine the file extension from script_path
     let original_extension = match Path::new(script_path).extension() {
         Some(ext) => ext,
         None => {
@@ -127,14 +121,12 @@ pub fn save_script(script_name: &str, script_path: Option<&str>) {
         }
     };
 
-    // Create the full path for the new script file
     let new_script_path = scripts_dir.join(format!("{}.{}", script_name, original_extension.to_string_lossy()));
 
-    // Copy the script file to the scripts directory
     if let Err(err) = fs::copy(script_path, &new_script_path) {
         eprintln!("Failed to save script: {}", err);
         return;
     }
 
-    println!("Script '{}' saved successfully at '{}'.", script_name, new_script_path.display());
+    println!("Script '{}' saved successfully to '{}'.", script_name, new_script_path.display());
 }

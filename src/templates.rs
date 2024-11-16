@@ -3,11 +3,33 @@ use std::io;
 use std::path::Path;
 use std::env;
 use crate::project_init::init_project;
+use crate::util::get_install_path;
 
 pub fn template_manager(action: &str, template_name: &str, project_name: Option<&str>, project_language: Option<&str>, project_main: Option<&str>) {
     match action {
         "save" => {
-            // Get current directory path
+            let install_path = match get_install_path() {
+                Ok(path) => path,
+                Err(err) => {
+                    eprintln!("Failed to get install path: {}", err);
+                    return;
+                }
+            };
+
+            let templates_dir = Path::new(&install_path).join("templates");
+            if !templates_dir.exists() {
+                if let Err(err) = fs::create_dir_all(&templates_dir) {
+                    eprintln!("Failed to create templates directory: {}", err);
+                    return;
+                }
+            }
+
+            let template_path = templates_dir.join(template_name);
+            if let Err(err) = fs::create_dir(&template_path) {
+                eprintln!("Failed to create template directory: {}", err);
+                return;
+            }
+
             let current_dir = match env::current_dir() {
                 Ok(path) => path,
                 Err(err) => {
@@ -16,23 +38,6 @@ pub fn template_manager(action: &str, template_name: &str, project_name: Option<
                 }
             };
 
-            // Create a templates directory if it doesn't exist
-            let templates_dir = Path::new("J:\\universal_project_manager\\templates");
-            if !templates_dir.exists() {
-                if let Err(err) = fs::create_dir_all(&templates_dir) {
-                    eprintln!("Failed to create templates directory: {}", err);
-                    return;
-                }
-            }
-
-            // Create a new directory for the template
-            let template_path = templates_dir.join(template_name);
-            if let Err(err) = fs::create_dir(&template_path) {
-                eprintln!("Failed to create template directory: {}", err);
-                return;
-            }
-
-            // Copy all contents from current directory to template directory recursively
             if let Err(err) = copy_dir_contents(&current_dir, &template_path) {
                 eprintln!("Failed to copy directory contents: {}", err);
                 return;
@@ -42,16 +47,21 @@ pub fn template_manager(action: &str, template_name: &str, project_name: Option<
 
         },
         "create" => {
-            // Check if the project directory already exists
-            
+            let install_path = match get_install_path() {
+                Ok(path) => path,
+                Err(err) => {
+                    eprintln!("Failed to get install path: {}", err);
+                    return;
+                }
+            };
 
-            // Define the path to the templates directory and the specific template
-            let templates_dir = Path::new("J:\\universal_project_manager\\templates\\").join(template_name);
+            let templates_dir = Path::new(&install_path).join("templates").join(template_name);
 
             if !templates_dir.exists() {
                 eprintln!("Template '{}' does not exist.", template_name);
                 return;
             }
+
             let project_name = match project_name {
                 Some(name) => name.to_string(),
                 None => {
@@ -61,11 +71,13 @@ pub fn template_manager(action: &str, template_name: &str, project_name: Option<
                     input.trim().to_string()
                 },
             };
+
             let dest_path = env::current_dir().unwrap().join(&project_name);
             if dest_path.exists() {
                 eprintln!("Destination directory '{}' already exists.", dest_path.display());
                 return;
             }
+
             let project_language = match project_language {
                 Some(lang) => lang.to_string(),
                 None => {
@@ -75,23 +87,22 @@ pub fn template_manager(action: &str, template_name: &str, project_name: Option<
                     input.trim().to_string()
                 },
             };
+
             let project_main = match project_main {
                 Some(main) => main.to_string(),
                 None => {
                     let mut input = String::new();
-                    println!("Enter the projects main entry point (e.g., src/main.py, src/main.rs):");
+                    println!("Enter the project's main entry point (e.g., src/main.py, src/main.rs):");
                     io::stdin().read_line(&mut input).expect("Failed to read line");
                     input.trim().to_string()
                 },
             };
-            
 
             if let Err(err) = fs::create_dir(&dest_path) {
                 eprintln!("Failed to create project directory: {}", err);
                 return;
             }
             
-            // Copy the template directory contents into the newly created project directory
             if let Err(err) = copy_dir_contents(&templates_dir, &dest_path) {
                 eprintln!("Failed to copy template directory: {}", err);
                 return;
@@ -101,12 +112,20 @@ pub fn template_manager(action: &str, template_name: &str, project_name: Option<
                 eprintln!("Failed to navigate into project directory: {}", err);
                 return;
             }
+
             init_project(Some(&project_language), Some(&project_main));
             println!("Created project '{}' from template '{}'", project_name, template_name);
-
         },
         "delete" => {
-            let templates_dir = Path::new("J:\\universal_project_manager\\templates"); 
+            let install_path = match get_install_path() {
+                Ok(path) => path,
+                Err(err) => {
+                    eprintln!("Failed to get install path: {}", err);
+                    return;
+                }
+            };
+
+            let templates_dir = Path::new(&install_path).join("templates");
             let template_path = templates_dir.join(template_name);
 
             if template_path.exists() {
@@ -119,47 +138,30 @@ pub fn template_manager(action: &str, template_name: &str, project_name: Option<
                 eprintln!("Template '{}' not found.", template_name);
             }
         },
-        "list" => {
-            let templates_dir = Path::new("J:\\universal_project_manager\\templates");
-            if !templates_dir.exists() {
-                eprintln!("No templates found.");
-                return;
-            }
-
-            let entries = match fs::read_dir(templates_dir) {
-                Ok(entries) => entries,
-                Err(err) => {
-                    eprintln!("Failed to read templates directory: {}", err);
-                    return;
-                }
-            };
-
-            for entry in entries {
-                if let Ok(entry) = entry {
-                    let template_name = entry.file_name();
-                    println!("{}", template_name.to_string_lossy());
-                }
-            }
-        },
-        _ => {println!("Unsupported action '{}'.", action);}
+        _ => eprintln!("Unknown action: {}", action),
     }
 }
 
 fn copy_dir_contents(src: &Path, dst: &Path) -> io::Result<()> {
+    if !src.exists() || !src.is_dir() {
+        return Err(io::Error::new(io::ErrorKind::NotFound, "Source directory not found"));
+    }
+
+    if !dst.exists() {
+        fs::create_dir_all(dst)?;
+    }
+
     for entry in fs::read_dir(src)? {
         let entry = entry?;
-        let file_type = entry.file_type()?;
-        let src_path = entry.path();
-        let file_name = src_path.file_name().ok_or(io::Error::new(io::ErrorKind::Other, "Invalid file name"))?;
+        let entry_path = entry.path();
+        let dst_path = dst.join(entry.file_name());
 
-        let dst_path = dst.join(file_name);
-
-        if file_type.is_dir() {
-            fs::create_dir_all(&dst_path)?;
-            copy_dir_contents(&src_path, &dst_path)?;
+        if entry_path.is_dir() {
+            copy_dir_contents(&entry_path, &dst_path)?;
         } else {
-            fs::copy(&src_path, &dst_path)?;
+            fs::copy(entry_path, dst_path)?;
         }
     }
+
     Ok(())
 }

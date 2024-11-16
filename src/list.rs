@@ -2,6 +2,7 @@ use crate::config::read_config_from;
 use crate::project_database::load_projects_db;
 use std::fs;
 use std::path::Path;
+use crate::util::{get_install_path};
 
 pub fn list_manager(argument: &str) {
     match argument {
@@ -16,10 +17,21 @@ pub fn list_manager(argument: &str) {
             println!("8. GS-Edit");
         },
         "templates" => {
-            let templates_dir = Path::new("J:\\universal_project_manager\\templates");
+            let install_path = match get_install_path() {
+                Ok(path) => path,
+                Err(err) => {
+                    eprintln!("Error getting install path: {}", err);
+                    return;
+                }
+            };
+            let templates_dir = Path::new(&install_path).join("templates");
+
             if !templates_dir.exists() {
-                eprintln!("No templates found.");
-                return;
+                if let Err(err) = fs::create_dir_all(&templates_dir) {
+                    eprintln!("Failed to create templates directory: {}", err);
+                    return;
+                }
+                println!("Created templates directory: {}", templates_dir.display());
             }
 
             let entries = match fs::read_dir(templates_dir) {
@@ -38,10 +50,21 @@ pub fn list_manager(argument: &str) {
             }
         },
         "licenses" => {
-            let license_dir = Path::new("J:\\universal_project_manager\\licenses");
+            let install_path = match get_install_path() {
+                Ok(path) => path,
+                Err(err) => {
+                    eprintln!("Error getting install path: {}", err);
+                    return;
+                }
+            };
+            let license_dir = Path::new(&install_path).join("licenses");
+
             if !license_dir.exists() {
-                eprintln!("No licenses found.");
-                return;
+                if let Err(err) = fs::create_dir_all(&license_dir) {
+                    eprintln!("Failed to create licenses directory: {}", err);
+                    return;
+                }
+                println!("Created licenses directory: {}", license_dir.display());
             }
 
             let entries = match fs::read_dir(license_dir) {

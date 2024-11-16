@@ -2,9 +2,11 @@ use std::process::{Command, Stdio};
 use std::path::Path;
 use crate::project_database::{load_projects_db, save_projects_db};
 use crate::config::read_config_from;
-use crate::util::clean_path;
+use crate::util::{clean_path, get_install_path};
 use std::env;
-use std::fs;
+use std::fs::{self, Permissions};
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt; 
 
 pub fn delete_project(project: &str) {
     let mut db = load_projects_db();
@@ -12,10 +14,8 @@ pub fn delete_project(project: &str) {
         save_projects_db(&db);
         println!("Project '{}' deleted from database successfully.", project);
 
-        // Assuming project_info has a field containing the path of the project
         let project_path = Path::new(&project_info.project_path);
         
-        // Check if the project path exists and delete it
         if project_path.exists() {
             if let Err(err) = fs::remove_dir_all(project_path) {
                 println!("Failed to delete project '{}': {}", project, err);
@@ -38,19 +38,39 @@ pub fn open_project(project: &str) {
     if let Some(project_info) = db.projects.get(project) {
         let project_path = &project_info.project_path;
 
-        let script_path = if cfg!(windows) {
-            Path::new("J:\\universal_project_manager\\src\\open_project.bat").to_path_buf()
+        let install_path = get_install_path().unwrap(); 
+        let script_path_str = if cfg!(windows) {
+            format!("{}/open_project.bat", install_path)
         } else {
-            Path::new("J:\\universal_project_manager\\src\\open_project.sh").to_path_buf()
+            format!("{}/open_project.sh", install_path)
         };
 
-        // Ensure script_path exists before attempting to execute
+        let script_path = Path::new(&script_path_str);
+
         if !script_path.exists() {
-            eprintln!("Script {:?} not found", script_path);
-            return;
+            let script_content = if cfg!(windows) {
+                r"@echo off
+        start cmd /k cd /d %~1"
+            } else {
+                r"#!/bin/bash
+        cd $1"
+            };
+        
+            if let Err(err) = fs::write(&script_path, script_content) {
+                eprintln!("Failed to create script {:?}: {}", script_path, err);
+                return;
+            }
+        
+            #[cfg(unix)]
+            {
+                if let Err(err) = fs::set_permissions(script_path, Permissions::from_mode(0o755)) {
+                    eprintln!("Failed to set permissions for script '{}': {}", script_path.display(), err);
+                }
+            }
+        
+            println!("Created script: {:?}", script_path);
         }
 
-        // Construct the command
         let status = if cfg!(windows) {
             Command::new("cmd")
                 .arg("/C")
@@ -68,7 +88,6 @@ pub fn open_project(project: &str) {
                 .status()
         };
 
-        // Handle the command execution result
         match status {
             Ok(status) => {
                 if !status.success() {

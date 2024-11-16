@@ -124,14 +124,6 @@ fn main() {
                     .index(2))
         )
         .subcommand(
-            ClapCommand::new("help")
-                .about("Prints help information")
-                .arg(Arg::new("SUBCOMMAND")
-                    .help("The subcommand to get help for")
-                    .required(false)
-                    .index(1))
-        )
-        .subcommand(
             ClapCommand::new("template")
                 .about("Contains subcommands for managing templates")
                 .arg(Arg::new("ACTION")

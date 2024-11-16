@@ -5,7 +5,7 @@ use std::io::{ self, Write };
 use std::env;
 
 use crate::project_database::{ add_project_to_db, load_projects_db };
-use crate::util::{ clean_path };
+use crate::util::{ clean_path, get_install_path };
 use crate::config::{ read_config_from };
 
 pub fn create_project(
@@ -159,8 +159,10 @@ fn initialize_tests(project_path: &Path) {
 }
 
 fn initialize_license(project_path: &Path) {
-    let license_path = project_path.join("LICENSE");
-    let license_dir = Path::new("J:\\universal_project_manager\\licenses");
+    let install_path = get_install_path().unwrap();
+    let license_dir_str = format!("{}/licenses", install_path);
+    let license_dir = Path::new(&license_dir_str);
+
     if !license_dir.exists() {
         eprintln!("No licenses directory found.");
         return;
@@ -173,19 +175,26 @@ fn initialize_license(project_path: &Path) {
             return;
         }
     };
+
     let config = read_config_from();
     let preferred_license_name = config.preferences.license;
+
     for entry in entries {
         if let Ok(entry) = entry {
             let license_name = entry.file_name();
+
             if *license_name == *preferred_license_name {
-                let license_content = fs
-                    ::read_to_string(entry.path())
+                let license_content = fs::read_to_string(entry.path())
                     .expect("Failed to read license file");
-                fs::write(&license_path, &license_content).expect("Failed to create LICENSE file");
-                println!("Initialized LICENSE file.");
+
+                let license_path = project_path.join("LICENSE");
+                fs::write(&license_path, &license_content)
+                    .expect("Failed to create LICENSE file");
+
+                println!("Initialized LICENSE file with the preferred license.");
                 return;
             }
+
             println!("{}", license_name.to_string_lossy());
         }
     }
