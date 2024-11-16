@@ -1,70 +1,27 @@
-# universal_project_manager
+# Universal Project Manager
 
-UPM adds CLI commands and functionality to create and manage your programming projects much easier. When working in multiple languages as many coders (especially students) do, it can be tricky to remember all the different nuances in managing projects like packages managers, compilation and execution steps, and dependency handling. UPM adds commands that handle all the differences, and provides a few simple universal commands to manage any programming project in any language.
+Upman is a CLI tool that provides OS and language independent commands for all aspects of project management.
 
-Plans for the project:
-I plan to add a lot of configurability into the project. For example you should be able to configure your own default templates, default packages, default settings and such. I've already implemented some basics of this aspect, in the form of the upmconfig.toml, where you can set the 'git' and 'ignore' to true or false to have them set as flags always used in the 'upm new' command without being specified. More like this will come. Right now I want to lay down the base commands and make sure they work well and bug free across a wide variety of languages. As for languages the project will eventually be compatible with virtually any language, as for now I will add some of the main ones and slowly add more over time.
+![Crates.io Total Downloads](https://img.shields.io/crates/d/upman?logo=rust&label=Downloads&labelColor=blue)
 
-COMMANDS
+## Installation
 
-$upm new <PROJECT_NAME> <LANGUAGE> - Creates a new project in a new directory named PROJECT_NAME in the specified LANGUAGE.
+### Method #1 (Manual Installation)
 
-$upm run - Must be run from the root of a upm project. Runs the specified main entry point of the upm project.
+Install the binary from Releases for your OS, and place it in a folder recognized by your PATH or add it's location to your PATH.
 
-$upm init <LANGUAGE> <MAIN> - Initializes the current directory as a upm project if not already specified as one. Optionally takes LANGUAGE and MAIN, but if not passed it will prompt for them.
+### Method #2 (Automatic Installation - Crates.io - requires Rust)
 
-$upm add <PACKAGE_NAME> - Package manager. Adds the named package to the current project.
+Open a terminal (with Rust installed on your machine)
+```
+cargo install upman
+```
 
-FLAGS
+### Method #3 (Build from the repo - requires Rust)
 
---git - Initializes the project as a git repository.
-
---ignore - Requires the --git flag, initializes an ignore
-
---venv - Initializes the project as
-
---license - Initializes your default license in the project
-
---readme - Initializes a readme in the project
-
---tests - Initializes a tests directory in the project
-
---docs - Initializes a docs directory in the project
-
---docker - Initializes docker in the project
-
-SUPPORTED LANGUAGES:
-
-Python
-
-C
-
-C++
-
-C#
-
-Rust
-
-Javascript
-
-TypeScript
-
-React/HTML
-
-Java
-
-Ruby
-
-Go
-
-Swift
-
-Dart
-
-Shell
-
-R
-
-Scala
-
-Perl
+Open a terminal (with Rust installed on your machine)
+```
+git clone https://github.com/james-kaddissi/universal_project_manager.git
+cd universal_project_manager
+cargo build
+```
