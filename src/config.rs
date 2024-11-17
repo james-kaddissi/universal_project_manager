@@ -215,3 +215,31 @@ pub fn set_defaults(argument: &str) {
     write_config_to(&config);
     println!("Defaults updated successfully.");
 }
+
+pub fn set_warnings(argument: &str) {
+    let mut config = read_config_from();
+    match argument {
+        "creation" => {
+            config.warnings.creation = !config.warnings.creation;
+            println!("Creation warning updated to {}", config.warnings.creation);
+        },
+        "init" => {
+            config.warnings.init = !config.warnings.init;
+            println!("Init warning updated to {}", config.warnings.init);
+        },
+        "run" => {
+            config.warnings.run = !config.warnings.run;
+            println!("Run warning updated to {}", config.warnings.run);
+        },
+        "add" => {
+            config.warnings.add = !config.warnings.add;
+            println!("Add warning updated to {}", config.warnings.add);
+        },
+        _ => {
+            println!("Unsupported argument '{}'. Use 'creation', 'init', 'run', or 'add'.", argument);
+            return;
+        }
+    }
+    write_config_to(&config);
+    println!("Warnings updated successfully.");
+}

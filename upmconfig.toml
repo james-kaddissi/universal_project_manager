@@ -11,7 +11,6 @@ docker = false
 [preferences]
 editor = "vscode"
 license = "MIT"
-open_command = "code ."
 
 [warnings]
 creation = true

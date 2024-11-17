@@ -1,4 +1,4 @@
-use clap::{Arg, Command as ClapCommand };
+use clap::{Arg, Command as ClapCommand, ArgAction};
 pub mod project_init;
 pub mod project_database;
 pub mod project_management;
@@ -13,7 +13,7 @@ pub mod list;
 use crate::project_init::{create_project, init_project};
 use crate::util::{clean_path};
 use crate::project_database::{load_projects_db};
-use crate::config::{read_config_from, set_license, set_defaults, set_editor};
+use crate::config::{read_config_from, set_license, set_defaults, set_editor, set_warnings};
 use crate::secrets::{secrets_manager};
 use crate::scripts::{add_script, delete_script, save_script};
 use crate::packages::{add_package};
@@ -39,37 +39,44 @@ fn main() {
                     .index(2))
                 .arg(Arg::new("git")
                     .long("git")
-                    .help("Initializes the project with git")
-                    .action(clap::ArgAction::SetFalse))
+                    .short('g')
+                    .action(ArgAction::SetTrue)
+                    .help("Initializes the project with git"))
                 .arg(Arg::new("ignore")
                     .long("ignore")
-                    .help("Initializes a .gitignore")
-                    .requires("git")
-                    .action(clap::ArgAction::SetFalse)) 
+                    .short('i')
+                    .action(ArgAction::SetTrue)
+                    .help("Initializes a .gitignore"))
                 .arg(Arg::new("venv")
                     .long("venv")
-                    .help("Initializes a venv")
-                    .action(clap::ArgAction::SetFalse))
+                    .short('v')
+                    .action(ArgAction::SetTrue)
+                    .help("Initializes a venv"))
                 .arg(Arg::new("license")
                     .long("license")
-                    .help("Initializes a license. Uses default license if no argument is provided.")
-                    .action(clap::ArgAction::SetFalse))
+                    .short('l')
+                    .action(ArgAction::SetTrue)
+                    .help("Initializes a license. Uses default license if no argument is provided."))
                 .arg(Arg::new("readme")
                     .long("readme")
-                    .help("Initializes a readme. Uses default readme.")
-                    .action(clap::ArgAction::SetFalse))
+                    .short('r')
+                    .action(ArgAction::SetTrue)
+                    .help("Initializes a readme. Uses default readme."))
                 .arg(Arg::new("tests")
                     .long("tests")
-                    .help("Initializes a tests directory.")
-                    .action(clap::ArgAction::SetFalse))
+                    .short('t')
+                    .action(ArgAction::SetTrue)
+                    .help("Initializes a tests directory."))
                 .arg(Arg::new("docs")
                     .long("docs")
-                    .help("Initializes a docs directory.")
-                    .action(clap::ArgAction::SetFalse))
+                    .short('d')
+                    .action(ArgAction::SetTrue)
+                    .help("Initializes a docs directory."))
                 .arg(Arg::new("docker")
                     .long("docker")
-                    .help("Initializes the project with docker")
-                    .action(clap::ArgAction::SetFalse))
+                    .short('o')
+                    .action(ArgAction::SetTrue)
+                    .help("Initializes the project with docker"))
         )
         .subcommand(
             ClapCommand::new("add")
@@ -193,14 +200,14 @@ fn main() {
         Some(("new", sub_m)) => {
             let project_name = sub_m.get_one::<String>("PROJECT_NAME").unwrap();
             let project_language = sub_m.get_one::<String>("LANGUAGE").unwrap();
-            let git = sub_m.contains_id("git") || config.default_flags.git;
-            let ignore = sub_m.contains_id("ignore") || (config.default_flags.ignore && git);
-            let venv = sub_m.contains_id("venv") || config.default_flags.venv;
-            let license = sub_m.contains_id("license") || config.default_flags.license;
-            let readme = sub_m.contains_id("readme") || config.default_flags.readme;
-            let tests = sub_m.contains_id("tests") || config.default_flags.tests;
-            let docs = sub_m.contains_id("docs") || config.default_flags.docs;
-            let docker = sub_m.contains_id("docker") || config.default_flags.docker;
+            let git = *sub_m.get_one::<bool>("git").unwrap() || config.default_flags.git;
+            let ignore = *sub_m.get_one::<bool>("ignore").unwrap() || (config.default_flags.ignore && git);
+            let venv = *sub_m.get_one::<bool>("venv").unwrap() || config.default_flags.venv;
+            let license = *sub_m.get_one::<bool>("license").unwrap() || config.default_flags.license;
+            let readme = *sub_m.get_one::<bool>("readme").unwrap() || config.default_flags.readme;
+            let tests = *sub_m.get_one::<bool>("tests").unwrap() || config.default_flags.tests;
+            let docs = *sub_m.get_one::<bool>("docs").unwrap() || config.default_flags.docs;
+            let docker = *sub_m.get_one::<bool>("docker").unwrap() || config.default_flags.docker;
             if config.warnings.creation{
                 println!("Project creation requires the necessary dependencies to be installed. Errors may occur if you do not have the language installed.");
                 println!("To disable this warning run 'upman config warnings creation' to toggle the warning, or manually set it to false in the upmconfig.toml file.");
@@ -261,6 +268,9 @@ fn main() {
             }
             if modifier == "license" {
                 set_license(argument);
+            }
+            if modifier == "warnings" {
+                set_warnings(argument);
             }
         },
         Some(("template", sub_m)) => {

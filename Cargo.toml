@@ -1,6 +1,6 @@
 [package]
 name = "upman"
-version = "0.2.0"
+version = "1.0.0"
 edition = "2021"
 
 description = "A CLI tool for managing universal projects."
